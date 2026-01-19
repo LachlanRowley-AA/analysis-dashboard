@@ -1,66 +1,74 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+import { useState } from 'react';
+import { Container, Group, Title, Button, Tabs, Loader } from '@mantine/core';
+import { IconRefresh } from '@tabler/icons-react';
+import { ComparisonData } from '../types/analytics';
+import { ConfigurationCard } from '../components/ConfigurationCard';
+import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
+import { CategoryComparisonTab } from '../components/Dashboard/CategoryComparisonTab';
+import { TotalTab } from '../components/Dashboard/TotalComparisonTab';
+import Test from '../components/Test';
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
+  const [fbToken, setFbToken] = useState<string>('');
+  const [ghlToken, setGhlToken] = useState<string>('');
+  const [configured, setConfigured] = useState<boolean>(false);
+  const [selectedAdset, setSelectedAdset] = useState<ComparisonData | null>(null);
+
+
+  const handleConfigure = (): void => {
+    if (fbToken && ghlToken) {
+      setConfigured(true);
+    }
+  };
+
+  if (!configured) {
+    return (
+      <Container size="xs" py={80}>
+        <ConfigurationCard
+          fbToken={fbToken}
+          ghlToken={ghlToken}
+          onFbTokenChange={setFbToken}
+          onGhlTokenChange={setGhlToken}
+          onSubmit={handleConfigure}
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </Container>
+    );
+  }
+
+  return (
+      <Container size="xl" py="xl">
+        <Group justify="space-between" mb="xl">
+          <Title order={1}>Analytics Dashboard</Title>
+          <Button
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            Refresh
+          </Button>
+        </Group>
+
+        <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs.List mb="xl">
+            <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
+            <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
+            <Tabs.Tab value="total">Total</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="monthComparison">
+            {(
+              <MonthComparisonTab
+              />
+            )}
+          </Tabs.Panel>
+          <Tabs.Panel value="categoryComparison">
+            {<CategoryComparisonTab/>}
+          </Tabs.Panel>
+
+          <Tabs.Panel value="total">
+            {<TotalTab/>}
+          </Tabs.Panel> 
+        </Tabs>
+      </Container>
   );
 }

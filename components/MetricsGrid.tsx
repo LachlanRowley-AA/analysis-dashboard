@@ -1,0 +1,162 @@
+import { useState } from 'react';
+import { Grid, Switch, Group, Text } from '@mantine/core';
+import { StatCard } from './StatCard';
+import { MetaAdsetData, MetricData } from '../types/analytics';
+import {
+  IconUsers,
+  IconTrendingUp,
+  IconMessage,
+  IconCurrencyDollar,
+  IconUserPlus,
+  IconPercentage,
+  IconChartLine,
+  IconCoin,
+} from '@tabler/icons-react';
+import { numberFormatter } from '@/lib/formatter';
+import { LTVGrid } from './LTV';
+import { useAnalytics } from './DataStorageContext';
+
+interface MetricsGridProps {
+  data: MetaAdsetData;
+  comparison?: MetaAdsetData;
+  showComparison?: boolean;
+}
+
+export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, showComparison = false }) => {
+  const [showAbsolute, setShowAbsolute] = useState(false);
+  const fullData : MetaAdsetData[] = useAnalytics().metaData;
+
+  const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
+    if (!previous) return undefined;
+    // console.log("Calculating change:", { current, previous, isCurrency, showAbsolute });
+    if (showAbsolute) {
+      const absoluteChange = current - previous;
+      const prefix = absoluteChange >= 0 ? '+' : '';
+      if (isCurrency) {
+        return `${prefix}$${numberFormatter.format(Math.abs(absoluteChange))}`;
+      }
+      return `${prefix}${numberFormatter.format(absoluteChange)}`;
+    } else {
+      const change = ((current - previous) / previous) * 100;
+      return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    }
+  };
+
+  return (
+    <>
+      {showComparison && (
+        <Group justify="flex-end" mb="md">
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">Percentage</Text>
+            <Switch
+              checked={showAbsolute}
+              onChange={(event) => setShowAbsolute(event.currentTarget.checked)}
+              size="md"
+            />
+            <Text size="sm" c="dimmed">Numeric</Text>
+          </Group>
+        </Group>
+      )
+      }
+      <Grid>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconMessage size={28} />}
+            title="Cost Per Lead"
+            value={`$${numberFormatter.format(data.amountSpent / data.lead)}`}
+            change={calculateChange(data.amountSpent / data.lead, comparison ? comparison.amountSpent / comparison.lead : undefined, true)}
+            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.lead)}` : undefined}
+            color="#40c057"
+            lowerBetter
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconUserPlus size={28} />}
+            title="Total Leads"
+            value={data.lead.toLocaleString()}
+            change={calculateChange(data.lead, comparison?.lead)}
+            priorValue={comparison ? comparison.lead.toLocaleString() : undefined}
+            color="#7950f2"
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconTrendingUp size={28} />}
+            title="Cost Per Acquisition"
+            value={`$${numberFormatter.format(data.amountSpent / data.conversions)}`}
+            change={calculateChange(data.amountSpent / data.conversions, comparison ? comparison?.amountSpent / comparison?.conversions : 0, true)}
+            lowerBetter
+            color="#f06595"
+            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.conversions)}` : undefined}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconCurrencyDollar size={28} />}
+            title="Conversion Value"
+            value={`$${numberFormatter.format(data.conversionValue)}`}
+            change={calculateChange(data.conversionValue, comparison?.conversionValue, true)}
+            priorValue={comparison ? `$${numberFormatter.format(comparison.conversionValue)}` : undefined}
+            color="#fd7e14"
+            lowerBetter={false}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconPercentage size={28} />}
+            title="Cost Per Mille"
+            value={`$${numberFormatter.format(data.cpm)}`}
+            change={calculateChange(data.cpm, comparison?.cpm, true)}
+            priorValue={comparison ? `$${numberFormatter.format(comparison.cpm)}` : undefined}
+            color="#20c997"
+            lowerBetter
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconCoin size={28} />}
+            title="Click Through Rate"
+            value={`${numberFormatter.format(data.ctr)}%`}
+            change={calculateChange(data.ctr, comparison?.ctr)}
+            color="#51cf66"
+            priorValue={comparison ? `${numberFormatter.format(comparison.ctr)}%` : undefined}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconChartLine size={28} />}
+            title="Amount Spent"
+            value={`$${numberFormatter.format(data.amountSpent)}`}
+            change={calculateChange(data.amountSpent, comparison?.amountSpent, true)}
+            color="#ffa94d"
+            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent)}` : undefined}
+            neutral
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconUsers size={28} />}
+            title="Frequency"
+            value={data.frequency.toLocaleString()}
+            change={calculateChange(data.frequency, comparison?.frequency)}
+            priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
+            color="#228be6"
+            lowerBetter
+          />
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            icon={<IconUsers size={28} />}
+            title="Return on Ad Spend"
+            value={(data.conversionValue / data.amountSpent).toFixed(2)}
+            change={calculateChange((data.conversionValue / data.amountSpent), (comparison?.conversionValue ? comparison?.conversionValue / comparison?.amountSpent : 0))}
+            priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
+            color="#228be6"
+          />
+        </Grid.Col>
+      </Grid>
+    </>
+  );
+};
