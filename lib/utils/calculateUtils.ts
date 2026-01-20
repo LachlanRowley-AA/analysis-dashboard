@@ -1,8 +1,8 @@
 import { GHLData, MetaAdsetData } from "@/types/analytics";
 import { ghlAdsetGrouping } from "../constants/analytics";
 
-const ATO_LTV = 5000;
-const MACHINERY_LTV = 8000;
+const ATO_LTV = 8000;
+const MACHINERY_LTV = 15000;
 
 
 export const calculateLTV = (ghlData: GHLData[]): number => {    
