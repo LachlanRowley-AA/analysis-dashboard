@@ -8,10 +8,12 @@ import {
 import { numberFormatter } from '@/lib/formatter';
 import { metaAdsetGrouping, LTV_VALUES } from '@/lib/constants/analytics';
 
-interface LTVGridProps {
+interface LTVCostProps {
   data: MetaAdsetData[];
   comparison?: MetaAdsetData[];
   showComparison?: boolean;
+  currentCost: number;
+  priorCost?: number;
 }
 
 const calculateLTV = (data: MetaAdsetData[]): number => {
@@ -24,11 +26,10 @@ const calculateLTV = (data: MetaAdsetData[]): number => {
     }
     return 0;
   })
-  console.log("dataLTV: ", dataLTV)
   return dataLTV.reduce((sum, val) => sum + val, 0);
 }
 
-export const LTVGrid: React.FC<LTVGridProps> = ({ data, comparison, showComparison = false }) => {
+export const LTVCost: React.FC<LTVCostProps> = ({ data, comparison, showComparison = false, currentCost, priorCost }) => {
   const [showAbsolute, setShowAbsolute] = useState(false);
 
 
@@ -46,19 +47,18 @@ export const LTVGrid: React.FC<LTVGridProps> = ({ data, comparison, showComparis
       return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
     }
   };
-  console.log("LTVGrid Render:", { data, comparison });
 
-  const current = calculateLTV(data);
-  const prior = comparison ? calculateLTV(comparison) : undefined;
+  const current = calculateLTV(data) / currentCost;
+  const prior = comparison && priorCost ? calculateLTV(comparison) / priorCost : undefined;
 
   return (
     <>
       <StatCard
         icon={<IconTrendingUp size={28} />}
-        title="LTV"
-        value={`$${numberFormatter.format(current)}`}
+        title="LTV to CtA"
+        value={`${numberFormatter.format(current)}`}
         change={calculateChange(current, prior, true)}
-        priorValue={comparison ? `$${numberFormatter.format(prior ? prior : 0)}` : undefined}
+        priorValue={comparison ? `${numberFormatter.format(prior ? prior : 0)}` : undefined}
         color="#40c057"
       />
     </>

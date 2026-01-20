@@ -8,15 +8,21 @@ import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
 type AnalyticsContextType = {
   metaData: MetaAdsetData[];
   refreshMetaData: () => Promise<void>;
+  ready: boolean;
 };
 
 const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [metaData, setMetaData] = useState<MetaAdsetData[]>([]);
+  const [ready, setReady] = useState<boolean>(false);
 
   const refreshMetaData = useCallback(async () => {
-    const MONTHS_TO_FETCH = 2;
+    if(ready) {
+      console.log("Data is already ready, skipping refresh.");
+      return;
+    };
+    const MONTHS_TO_FETCH = 6;
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1));
     startDate.setDate(1);
@@ -50,6 +56,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
 
     setMetaData(fetchedMetaData);
+    setReady(true);
+    console.log("MetaData refreshed and ready.");
   }, []);
 
   // optionally, fetch on mount
@@ -58,7 +66,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <AnalyticsContext.Provider value={{ metaData, refreshMetaData }}>
+    <AnalyticsContext.Provider value={{ metaData, refreshMetaData, ready }}>
       {children}
     </AnalyticsContext.Provider>
   );

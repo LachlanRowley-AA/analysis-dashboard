@@ -9,21 +9,15 @@ import { useAnalytics } from "@/components/DataStorageContext";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
-  const { refreshMetaData } = useAnalytics();
+  const { refreshMetaData, ready } = useAnalytics();
 
-  // if (!configured) {
-  //   return (
-  //     <Container size="xs" py={80}>
-  //       <ConfigurationCard
-  //         fbToken={fbToken}
-  //         ghlToken={ghlToken}
-  //         onFbTokenChange={setFbToken}
-  //         onGhlTokenChange={setGhlToken}
-  //         onSubmit={handleConfigure}
-  //       />
-  //     </Container>
-  //   );
-  // }
+  if (!ready) {
+    return (
+      <Container size="xs" py={80}>
+        <Loader size="lg" variant="dots" />
+      </Container>
+    );
+  }
 
   return (
     <Container size="xl" py="xl">

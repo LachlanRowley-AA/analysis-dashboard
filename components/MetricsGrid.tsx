@@ -16,6 +16,7 @@ import { numberFormatter } from '@/lib/formatter';
 import { LTVGrid } from './LTV';
 import { RunRateChart } from './RunRateChart';
 import { useAnalytics } from './DataStorageContext';
+import { LTVCost } from './LTVCtAC';
 
 interface MetricsGridProps {
   data: MetaAdsetData;
@@ -44,6 +45,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
   const [showMetric, setShowMetric] = useState<MetricKey>('lead');
   const [graphIndex, setGraphIndex] = useState<number>(-1);
   const fullData: MetaAdsetData[] = useAnalytics().metaData;
+
+  console.log("MetricsGrid Render:", { data, comparison, dataArr, comparisonArr });
 
   const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
     if (!previous) return undefined;
@@ -148,6 +151,18 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       change={calculateChange((data.conversionValue / data.amountSpent), (comparison?.conversionValue ? comparison?.conversionValue / comparison?.amountSpent : 0))}
       priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
       color="#228be6"
+    />,
+    <LTVGrid
+      data={dataArr ? dataArr : fullData}
+      comparison={comparisonArr ?? fullData}
+      showComparison={true}
+    />,
+    <LTVCost
+      data={dataArr ? dataArr : fullData}
+      comparison={comparisonArr ?? fullData}
+      showComparison={true}
+      currentCost={data.amountSpent}
+      priorCost={comparison ? comparison.amountSpent : 0}
     />
   ];
   const CARDS_PER_ROW = 12 / colSpan.lg;
