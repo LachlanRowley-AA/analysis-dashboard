@@ -24,6 +24,7 @@ export class AnalyticsApiService {
 
   static async fetchDateData(startDate?: Date, endDate?: Date): Promise<MetaAdsetData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
+      console.log("Skipping fetchDateData during production build");
       return [];
     }
 
@@ -34,7 +35,9 @@ export class AnalyticsApiService {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
-
+    console.log(`Fetching MetaAdsetData from ${origin}/api/GetMetaMonthDailyData?startDateParam=${startDateString}&endDateParam=${endDateString}`);
+    console.log("Response status:", response);
+    console.log("Response ok:", response.status);
     if (!response.ok) {
       throw new Error('Failed to fetch data' + response.statusText);
     }

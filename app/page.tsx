@@ -44,6 +44,9 @@ export default function Dashboard() {
       <Group justify="space-between" mb="xl">
         <Title order={1}>Analytics Dashboard</Title>
         <Button
+          onClick={async () => {
+            console.log(await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20'));
+          }}
         >
           Refresh
         </Button>
