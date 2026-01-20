@@ -30,14 +30,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const analyticsDataPromise = await getAnalyticsData();
+  // const analyticsDataPromise = await getAnalyticsData();
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript />
       </head>
       <body>
-        <AnalyticsProvider metaData={analyticsDataPromise.metaData}>
+        <AnalyticsProvider>
           <MantineProvider>{children}</MantineProvider>
         </AnalyticsProvider>
       </body>
