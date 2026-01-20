@@ -22,7 +22,7 @@ export class AnalyticsApiService {
     return ghlData.data ?? [];
   }
 
-  static async fetchDateData(startDate?: Date, endDate?: Date): Promise<MetaAdsetData[]> {
+  static async fetchDateData(startDate?: Date, endDate?: Date, interval?: string): Promise<MetaAdsetData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
       console.log("Skipping fetchDateData during production build");
       return [];
@@ -31,7 +31,7 @@ export class AnalyticsApiService {
     const origin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const startDateString = startDate ? startDate.toISOString().split('T')[0] : undefined;
     const endDateString = endDate ? endDate.toISOString().split('T')[0] : undefined;
-    const response = await fetch(`${origin}/api/GetMetaMonthDailyData?startDateParam=${startDateString}&endDateParam=${endDateString}`, {
+    const response = await fetch(`${origin}/api/GetMetaMonthDailyData?startDateParam=${startDateString}&endDateParam=${endDateString}&increment=${interval}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });

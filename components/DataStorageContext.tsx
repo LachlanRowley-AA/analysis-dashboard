@@ -7,6 +7,7 @@ import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
 
 type AnalyticsContextType = {
   metaData: MetaAdsetData[];
+  fullData: MetaAdsetData[];
   refreshMetaData: () => Promise<void>;
   ready: boolean;
 };
@@ -15,16 +16,18 @@ const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [metaData, setMetaData] = useState<MetaAdsetData[]>([]);
+  const [fullData, setFullData] = useState<MetaAdsetData[]>([]);
   const [ready, setReady] = useState<boolean>(false);
 
   const refreshMetaData = useCallback(async () => {
-    const MONTHS_TO_FETCH = 6;
+    const MONTHS_TO_FETCH = 2;
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1));
     startDate.setDate(1);
     const endDate = new Date();
 
     let fetchedMetaData: MetaAdsetData[] = await AnalyticsApiService.fetchDateData(startDate, endDate);
+    let fullDataFetched: MetaAdsetData[] = await AnalyticsApiService.fetchDateData(new Date('2025-01-01'), endDate, "31");
     const ghlData: GHLData[] = await AnalyticsApiService.fetchGHLData();
 
     const metaMap = new Map<string, MetaAdsetData>();
@@ -52,6 +55,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
 
     setMetaData(fetchedMetaData);
+    setFullData(fullDataFetched);
     setReady(true);
     console.log("MetaData refreshed and ready.");
   }, []);
@@ -62,7 +66,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <AnalyticsContext.Provider value={{ metaData, refreshMetaData, ready }}>
+    <AnalyticsContext.Provider value={{ metaData, fullData, refreshMetaData, ready }}>
       {children}
     </AnalyticsContext.Provider>
   );

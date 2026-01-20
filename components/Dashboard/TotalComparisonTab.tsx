@@ -12,10 +12,10 @@ import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 
 export const TotalTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  const data = useAnalytics();
-  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName)));
+  const {fullData} = useAnalytics();
+  let adsetNames = Array.from(new Set(fullData.map(item => item.adsetName)));
   adsetNames.unshift("All");
-  const merge = mergeAdsetData(data.metaData, 'Total');
+  const merge = mergeAdsetData(fullData, 'Total');
   return (
     <Stack gap="xl">
       <div>
