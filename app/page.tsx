@@ -2,28 +2,14 @@
 
 import { useState } from 'react';
 import { Container, Group, Title, Button, Tabs, Loader } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
-import { ComparisonData } from '../types/analytics';
-import { ConfigurationCard } from '../components/ConfigurationCard';
 import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
 import { CategoryComparisonTab } from '../components/Dashboard/CategoryComparisonTab';
 import { TotalTab } from '../components/Dashboard/TotalComparisonTab';
-import Test from '../components/Test';
-import { RunRateChart } from '../components/RunRateChart';
+import { useAnalytics } from "@/components/DataStorageContext";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
-  const [fbToken, setFbToken] = useState<string>('');
-  const [ghlToken, setGhlToken] = useState<string>('');
-  const [configured, setConfigured] = useState<boolean>(false);
-  const [selectedAdset, setSelectedAdset] = useState<ComparisonData | null>(null);
-
-
-  const handleConfigure = (): void => {
-    if (fbToken && ghlToken) {
-      setConfigured(true);
-    }
-  };
+  const { refreshMetaData } = useAnalytics();
 
   // if (!configured) {
   //   return (
@@ -45,7 +31,8 @@ export default function Dashboard() {
         <Title order={1}>Analytics Dashboard</Title>
         <Button
           onClick={async () => {
-            console.log(await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20'));
+            console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
+            await refreshMetaData();
           }}
         >
           Refresh
