@@ -46,11 +46,13 @@ export const CategoryComparisonTab = () => {
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md">ATO</Title>
-        <MetricsGrid data={ATOMonthData} comparison={ATOLastMonthData} />
+        <MetricsGrid data={ATOMonthData} comparison={ATOLastMonthData} dataArr={ATOCurrentMonthData} comparisonArr={ATOPreviousMonthData} />
         <LTVGrid data={ATOCurrentMonthData} comparison={ATOPreviousMonthData} showComparison={true} />
         <Title order={2} mb="md">Machinery</Title>
-        <MetricsGrid data={machineryMonthData} comparison={machineryLastMonthData} />
+        <MetricsGrid data={machineryMonthData} comparison={machineryLastMonthData} dataArr={machineryCurrentMonthData} comparisonArr={machineryPreviousMonthData} />
         <LTVGrid data={machineryCurrentMonthData} comparison={machineryPreviousMonthData} showComparison={true} />
+        <Title order={2} mb="md">ATO vs Machinery</Title>
+        <MetricsGrid data={machineryMonthData} comparison={ATOMonthData} dataArr={machineryCurrentMonthData} comparisonArr={ATOCurrentMonthData} />
       </div>
     </Stack>
   );

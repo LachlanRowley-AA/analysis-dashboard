@@ -6,6 +6,8 @@ interface PerformanceChartProps {
   metrics: Array<{ key: keyof TimeSeriesData; color: string; label: string }>;
 }
 
+
+
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, metrics }) => {
   return (
     <ResponsiveContainer width="100%" height={350}>

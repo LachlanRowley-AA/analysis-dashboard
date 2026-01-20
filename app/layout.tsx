@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import '@mantine/charts/styles.css';
 
 import { AnalyticsProvider } from "@/components/DataStorageContext";
 import { getAnalyticsData } from "@/components/DataStorage";

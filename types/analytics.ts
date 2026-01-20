@@ -51,6 +51,8 @@ export interface StatCardProps {
   color: string;
   lowerBetter?: boolean;
   neutral?: boolean;
+  onClick?: () => void,
+
 }
 
 export interface MetaAdsetData {

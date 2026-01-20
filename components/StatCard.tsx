@@ -15,6 +15,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   color,
   lowerBetter,
   neutral,
+  onClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -31,6 +32,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       withBorder
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
       style={{
         transition: 'all 0.3s ease',
         transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',

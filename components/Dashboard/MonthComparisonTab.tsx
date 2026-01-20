@@ -40,7 +40,7 @@ export const MonthComparisonTab = () => {
           value={selectedAdset}
           onChange={setSelectedAdset}
         />
-        <MetricsGrid data={monthData} comparison={lastMonthData} />
+        <MetricsGrid data={monthData} comparison={lastMonthData} dataArr={currentMonthData} comparisonArr={previousMonthData} />
         <LTVGrid data={currentMonthData} comparison={previousMonthData} showComparison={true} />
       </div>
     </Stack>

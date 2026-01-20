@@ -14,21 +14,39 @@ import {
 } from '@tabler/icons-react';
 import { numberFormatter } from '@/lib/formatter';
 import { LTVGrid } from './LTV';
+import { RunRateChart } from './RunRateChart';
 import { useAnalytics } from './DataStorageContext';
 
 interface MetricsGridProps {
   data: MetaAdsetData;
   comparison?: MetaAdsetData;
   showComparison?: boolean;
+  dataArr?: MetaAdsetData[];
+  comparisonArr?: MetaAdsetData[];
 }
 
-export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, showComparison = false }) => {
+type MetricKey = keyof Pick<
+  MetaAdsetData,
+  | 'lead'
+  | 'amountSpent'
+  | 'reach'
+  | 'linkClicks'
+  | 'landingPageView'
+  | 'impressions'
+  | 'ctr'
+  | 'conversions'
+  | 'conversionValue'
+  | 'cpm'
+>;
+
+export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, showComparison = false, dataArr, comparisonArr }) => {
   const [showAbsolute, setShowAbsolute] = useState(false);
-  const fullData : MetaAdsetData[] = useAnalytics().metaData;
+  const [showMetric, setShowMetric] = useState<MetricKey>('lead');
+  const [graphIndex, setGraphIndex] = useState<number>(-1);
+  const fullData: MetaAdsetData[] = useAnalytics().metaData;
 
   const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
     if (!previous) return undefined;
-    // console.log("Calculating change:", { current, previous, isCurrency, showAbsolute });
     if (showAbsolute) {
       const absoluteChange = current - previous;
       const prefix = absoluteChange >= 0 ? '+' : '';
@@ -41,6 +59,120 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
     }
   };
+  const graph = (
+    dataArr ?
+      <Grid.Col span={12}><RunRateChart analytics={dataArr} comparisonData={comparisonArr} metric={showMetric} /></Grid.Col>
+      : null
+  );
+  const colSpan = { base: 12, sm: 6, lg: 3 };
+
+  const StatCards = [
+    <StatCard
+      icon={<IconMessage size={28} />}
+      title="Cost Per Lead"
+      value={`$${numberFormatter.format(data.amountSpent / data.lead)}`}
+      change={calculateChange(data.amountSpent / data.lead, comparison ? comparison.amountSpent / comparison.lead : undefined, true)}
+      priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.lead)}` : undefined}
+      color="#40c057"
+      lowerBetter
+    />,
+    <StatCard
+      icon={<IconUserPlus size={28} />}
+      title="Total Leads"
+      value={data.lead.toLocaleString()}
+      change={calculateChange(data.lead, comparison?.lead)}
+      priorValue={comparison ? comparison.lead.toLocaleString() : undefined}
+      color="#7950f2"
+      onClick={() => setShowMetric("lead")}
+
+    />,
+    <StatCard
+      icon={<IconTrendingUp size={28} />}
+      title="Cost Per Acquisition"
+      value={`$${numberFormatter.format(data.amountSpent / data.conversions)}`}
+      change={calculateChange(data.amountSpent / data.conversions, comparison ? comparison?.amountSpent / comparison?.conversions : 0, true)}
+      lowerBetter
+      color="#f06595"
+      priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.conversions)}` : undefined}
+    />,
+    <StatCard
+      icon={<IconCurrencyDollar size={28} />}
+      title="Conversion Value"
+      value={`$${numberFormatter.format(data.conversionValue)}`}
+      change={calculateChange(data.conversionValue, comparison?.conversionValue, true)}
+      priorValue={comparison ? `$${numberFormatter.format(comparison.conversionValue)}` : undefined}
+      color="#fd7e14"
+      lowerBetter={false}
+      onClick={() => setShowMetric("conversionValue")}
+    />,
+    <StatCard
+      icon={<IconPercentage size={28} />}
+      title="Cost Per Mille"
+      value={`$${numberFormatter.format(data.cpm)}`}
+      change={calculateChange(data.cpm, comparison?.cpm, true)}
+      priorValue={comparison ? `$${numberFormatter.format(comparison.cpm)}` : undefined}
+      color="#20c997"
+      lowerBetter
+    />,
+    <StatCard
+      icon={<IconChartLine size={28} />}
+      title="Amount Spent"
+      value={`$${numberFormatter.format(data.amountSpent)}`}
+      change={calculateChange(data.amountSpent, comparison?.amountSpent, true)}
+      color="#ffa94d"
+      priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent)}` : undefined}
+      neutral
+      onClick={() => setShowMetric("amountSpent")}
+    />,
+    <StatCard
+      icon={<IconCoin size={28} />}
+      title="Click Through Rate"
+      value={`${numberFormatter.format(data.ctr)}%`}
+      change={calculateChange(data.ctr, comparison?.ctr)}
+      color="#51cf66"
+      priorValue={comparison ? `${numberFormatter.format(comparison.ctr)}%` : undefined}
+    />,
+    <StatCard
+      icon={<IconUsers size={28} />}
+      title="Frequency"
+      value={data.frequency.toLocaleString()}
+      change={calculateChange(data.frequency, comparison?.frequency)}
+      priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
+      color="#228be6"
+      lowerBetter
+    />,
+    <StatCard
+      icon={<IconUsers size={28} />}
+      title="Return on Ad Spend"
+      value={(data.conversionValue / data.amountSpent).toFixed(2)}
+      change={calculateChange((data.conversionValue / data.amountSpent), (comparison?.conversionValue ? comparison?.conversionValue / comparison?.amountSpent : 0))}
+      priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
+      color="#228be6"
+    />
+  ];
+  const CARDS_PER_ROW = 12 / colSpan.lg;
+
+  const cards = StatCards.map((card, index) => {
+    const rowIndex = Math.floor(index / CARDS_PER_ROW);
+    const isRowEnd =
+      (index + 1) % CARDS_PER_ROW === 0 || index === StatCards.length - 1;
+
+    return (
+      <>
+        <Grid.Col
+          key={`card-${index}`}
+          span={colSpan}
+          onClick={() => setGraphIndex(rowIndex)}
+        >
+          {card}
+        </Grid.Col>
+
+        {isRowEnd && graphIndex === rowIndex && graph}
+      </>
+    );
+  });
+
+
 
   return (
     <>
@@ -59,103 +191,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       )
       }
       <Grid>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconMessage size={28} />}
-            title="Cost Per Lead"
-            value={`$${numberFormatter.format(data.amountSpent / data.lead)}`}
-            change={calculateChange(data.amountSpent / data.lead, comparison ? comparison.amountSpent / comparison.lead : undefined, true)}
-            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.lead)}` : undefined}
-            color="#40c057"
-            lowerBetter
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconUserPlus size={28} />}
-            title="Total Leads"
-            value={data.lead.toLocaleString()}
-            change={calculateChange(data.lead, comparison?.lead)}
-            priorValue={comparison ? comparison.lead.toLocaleString() : undefined}
-            color="#7950f2"
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconTrendingUp size={28} />}
-            title="Cost Per Acquisition"
-            value={`$${numberFormatter.format(data.amountSpent / data.conversions)}`}
-            change={calculateChange(data.amountSpent / data.conversions, comparison ? comparison?.amountSpent / comparison?.conversions : 0, true)}
-            lowerBetter
-            color="#f06595"
-            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.conversions)}` : undefined}
-          />
-        </Grid.Col>
-
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconCurrencyDollar size={28} />}
-            title="Conversion Value"
-            value={`$${numberFormatter.format(data.conversionValue)}`}
-            change={calculateChange(data.conversionValue, comparison?.conversionValue, true)}
-            priorValue={comparison ? `$${numberFormatter.format(comparison.conversionValue)}` : undefined}
-            color="#fd7e14"
-            lowerBetter={false}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconPercentage size={28} />}
-            title="Cost Per Mille"
-            value={`$${numberFormatter.format(data.cpm)}`}
-            change={calculateChange(data.cpm, comparison?.cpm, true)}
-            priorValue={comparison ? `$${numberFormatter.format(comparison.cpm)}` : undefined}
-            color="#20c997"
-            lowerBetter
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconCoin size={28} />}
-            title="Click Through Rate"
-            value={`${numberFormatter.format(data.ctr)}%`}
-            change={calculateChange(data.ctr, comparison?.ctr)}
-            color="#51cf66"
-            priorValue={comparison ? `${numberFormatter.format(comparison.ctr)}%` : undefined}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconChartLine size={28} />}
-            title="Amount Spent"
-            value={`$${numberFormatter.format(data.amountSpent)}`}
-            change={calculateChange(data.amountSpent, comparison?.amountSpent, true)}
-            color="#ffa94d"
-            priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent)}` : undefined}
-            neutral
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconUsers size={28} />}
-            title="Frequency"
-            value={data.frequency.toLocaleString()}
-            change={calculateChange(data.frequency, comparison?.frequency)}
-            priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
-            color="#228be6"
-            lowerBetter
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            icon={<IconUsers size={28} />}
-            title="Return on Ad Spend"
-            value={(data.conversionValue / data.amountSpent).toFixed(2)}
-            change={calculateChange((data.conversionValue / data.amountSpent), (comparison?.conversionValue ? comparison?.conversionValue / comparison?.amountSpent : 0))}
-            priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
-            color="#228be6"
-          />
-        </Grid.Col>
+        {cards}
       </Grid>
     </>
   );
