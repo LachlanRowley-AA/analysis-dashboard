@@ -10,14 +10,15 @@ import { useAnalytics } from "@/components/DataStorageContext";
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
   const { refreshMetaData, ready } = useAnalytics();
+  const [buttonClicked, setButtonClicked] = useState(false);
 
-  if (!ready) {
-    return (
-      <Container size="xs" py={80}>
-        <Loader size="lg" variant="dots" />
-      </Container>
-    );
-  }
+  // if (!ready) {
+  //   return (
+  //     <Container size="xs" py={80}>
+  //       <Loader size="lg" variant="dots" />
+  //     </Container>
+  //   );
+  // }
 
   return (
     <Container size="xl" py="xl">
@@ -25,11 +26,13 @@ export default function Dashboard() {
         <Title order={1}>Analytics Dashboard</Title>
         <Button
           onClick={async () => {
+            setButtonClicked(true);
             console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
             await refreshMetaData();
           }}
+          loading={buttonClicked && !ready}
         >
-          Refresh
+          Load Data
         </Button>
       </Group>
 

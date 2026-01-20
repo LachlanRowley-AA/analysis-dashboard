@@ -18,10 +18,6 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState<boolean>(false);
 
   const refreshMetaData = useCallback(async () => {
-    if(ready) {
-      console.log("Data is already ready, skipping refresh.");
-      return;
-    };
     const MONTHS_TO_FETCH = 6;
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1));
