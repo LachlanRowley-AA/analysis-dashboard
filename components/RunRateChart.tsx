@@ -1,4 +1,5 @@
 import { AreaChart } from '@mantine/charts';
+import { useMatches } from '@mantine/core';
 
 interface GraphDataPoint {
     day: string;
@@ -19,8 +20,6 @@ type MetricKey = keyof Pick<
     | 'conversionValue'
     | 'cpm'
 >;
-
-
 
 import { useAnalytics } from './DataStorageContext';
 import { MetaAdsetData } from '@/types/analytics';
@@ -87,14 +86,20 @@ export function RunRateChart({ analytics, comparisonData, metric }: RunRateChart
         graphData.push(newDataPoint);
     }
 
+    const showTooltip = useMatches({
+        base: false,
+        md: true
+    });
+
     return (
         <AreaChart
             h={300}
             data={graphData}
             series={[{ name: 'value', color: 'blue' }, { name: 'comparison', color: 'gray' }]}
             dataKey='day'
-            withPointLabels
+            withPointLabels={showTooltip}
             connectNulls={false}
+            withTooltip
         />
     )
 }

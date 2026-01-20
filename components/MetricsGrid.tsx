@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Grid, Switch, Group, Text } from '@mantine/core';
+import { Grid, Switch, Group, Text, useMatches } from '@mantine/core';
 import { StatCard } from './StatCard';
 import { MetaAdsetData, MetricData } from '../types/analytics';
 import {
@@ -67,10 +67,16 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       <Grid.Col span={12}><RunRateChart analytics={dataArr} comparisonData={comparisonArr} metric={showMetric} /></Grid.Col>
       : null
   );
-  const colSpan = { base: 12, sm: 6, lg: 3 };
+  const colSpan = useMatches({
+    base: 12,
+    sm: 6,
+    md: 4,
+    lg: 3,
+  })
 
   const StatCards = [
     <StatCard
+      key={'cpl'}
       icon={<IconMessage size={28} />}
       title="Cost Per Lead"
       value={`$${numberFormatter.format(data.amountSpent / data.lead)}`}
@@ -80,6 +86,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       lowerBetter
     />,
     <StatCard
+      key={'leads'}
       icon={<IconUserPlus size={28} />}
       title="Total Leads"
       value={data.lead.toLocaleString()}
@@ -90,6 +97,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
 
     />,
     <StatCard
+      key={'cta'}
       icon={<IconTrendingUp size={28} />}
       title="Cost Per Acquisition"
       value={`$${numberFormatter.format(data.amountSpent / data.conversions)}`}
@@ -99,6 +107,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.conversions)}` : undefined}
     />,
     <StatCard
+      key={'conversionValue'}
       icon={<IconCurrencyDollar size={28} />}
       title="Conversion Value"
       value={`$${numberFormatter.format(data.conversionValue)}`}
@@ -109,6 +118,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       onClick={() => setShowMetric("conversionValue")}
     />,
     <StatCard
+      key={'cpm'}
       icon={<IconPercentage size={28} />}
       title="Cost Per Mille"
       value={`$${numberFormatter.format(data.cpm)}`}
@@ -118,6 +128,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       lowerBetter
     />,
     <StatCard
+      key={'amountSpent'}
       icon={<IconChartLine size={28} />}
       title="Amount Spent"
       value={`$${numberFormatter.format(data.amountSpent)}`}
@@ -128,6 +139,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       onClick={() => setShowMetric("amountSpent")}
     />,
     <StatCard
+      key={'ctr'}
       icon={<IconCoin size={28} />}
       title="Click Through Rate"
       value={`${numberFormatter.format(data.ctr)}%`}
@@ -136,6 +148,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       priorValue={comparison ? `${numberFormatter.format(comparison.ctr)}%` : undefined}
     />,
     <StatCard
+      key={'frequency'}
       icon={<IconUsers size={28} />}
       title="Frequency"
       value={data.frequency.toLocaleString()}
@@ -145,6 +158,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       lowerBetter
     />,
     <StatCard
+      key={'roas'}
       icon={<IconUsers size={28} />}
       title="Return on Ad Spend"
       value={(data.conversionValue / data.amountSpent).toFixed(2)}
@@ -153,11 +167,13 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       color="#228be6"
     />,
     <LTVGrid
+      key={'ltv'}
       data={dataArr ? dataArr : fullData}
       comparison={comparisonArr ?? fullData}
       showComparison={true}
     />,
     <LTVCost
+      key={'ltvCta'}
       data={dataArr ? dataArr : fullData}
       comparison={comparisonArr ?? fullData}
       showComparison={true}
@@ -165,7 +181,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       priorCost={comparison ? comparison.amountSpent : 0}
     />
   ];
-  const CARDS_PER_ROW = 12 / colSpan.lg;
+  const CARDS_PER_ROW = 12 / colSpan;
 
   const cards = StatCards.map((card, index) => {
     const rowIndex = Math.floor(index / CARDS_PER_ROW);
