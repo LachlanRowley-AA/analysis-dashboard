@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Grid, Switch, Group, Text, useMatches } from '@mantine/core';
 import { StatCard } from './StatCard';
-import { MetaAdsetData, MetricData } from '../types/analytics';
+import { MetaAdsetData } from '../types/analytics';
 import {
   IconUsers,
   IconTrendingUp,
@@ -45,8 +45,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
   const [showMetric, setShowMetric] = useState<MetricKey>('lead');
   const [graphIndex, setGraphIndex] = useState<number>(-1);
   const fullData: MetaAdsetData[] = useAnalytics().metaData;
-
-  console.log("MetricsGrid Render:", { data, comparison, dataArr, comparisonArr });
 
   const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
     if (!previous) return undefined;
@@ -94,7 +92,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       priorValue={comparison ? comparison.lead.toLocaleString() : undefined}
       color="#7950f2"
       onClick={() => setShowMetric("lead")}
-
+      active={showMetric === 'lead'}
     />,
     <StatCard
       key={'cta'}
@@ -116,6 +114,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       color="#fd7e14"
       lowerBetter={false}
       onClick={() => setShowMetric("conversionValue")}
+      active={showMetric === 'conversionValue'}
     />,
     <StatCard
       key={'cpm'}
@@ -137,6 +136,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent)}` : undefined}
       neutral
       onClick={() => setShowMetric("amountSpent")}
+      active={showMetric === 'amountSpent'}
+
     />,
     <StatCard
       key={'ctr'}
@@ -179,7 +180,17 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       showComparison={true}
       currentCost={data.amountSpent}
       priorCost={comparison ? comparison.amountSpent : 0}
-    />
+    />,
+    <StatCard
+      key={'Conversions'}
+      icon={<IconUsers size={28} />}
+      title="Num Conversions"
+      value={(data.conversions.toString())}
+      change={calculateChange((data.conversions), (comparison?.conversions ? comparison?.conversions : 0))}
+      priorValue={comparison ? comparison.conversions.toString() : undefined}
+      color="#228be6"
+    />,
+
   ];
   const CARDS_PER_ROW = 12 / colSpan;
 

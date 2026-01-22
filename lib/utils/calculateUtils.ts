@@ -5,6 +5,7 @@ const ATO_LTV = 8000;
 const MACHINERY_LTV = 15000;
 
 
+
 export const calculateLTV = (ghlData: GHLData[]): number => {    
     let ltv = 0;
     ghlData.forEach(item => {

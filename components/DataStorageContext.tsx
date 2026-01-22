@@ -1,14 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
-import { MetaAdsetData, GHLData, createBlankMetaAdsetData } from "@/types/analytics";
-import { AnalyticsApiService } from "@/lib/services/api";
-import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { GHLData, MetaAdsetData } from "@/types/analytics";
 
 type AnalyticsContextType = {
   metaData: MetaAdsetData[];
   fullData: MetaAdsetData[];
-  refreshMetaData: () => Promise<void>;
+  cachedDate: string;
+  ghlData: GHLData[];
+  refreshMetaData: (force: boolean) => Promise<void>;
   ready: boolean;
 };
 
@@ -17,56 +17,45 @@ const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [metaData, setMetaData] = useState<MetaAdsetData[]>([]);
   const [fullData, setFullData] = useState<MetaAdsetData[]>([]);
-  const [ready, setReady] = useState<boolean>(false);
+  const [ghlData, setGhlData] = useState<GHLData[]>([]);
+  const [cachedDate, setCachedDate] = useState<string>("")
+  const [ready, setReady] = useState(false);
 
-  const refreshMetaData = useCallback(async () => {
-    const MONTHS_TO_FETCH = 2;
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1));
-    startDate.setDate(1);
-    const endDate = new Date();
+  const refreshMetaData = useCallback(async (force = false) => {
+    console.log("Refreshing Analytics Data, force=", force);  
+    setReady(false);
 
-    let fetchedMetaData: MetaAdsetData[] = await AnalyticsApiService.fetchDateData(startDate, endDate);
-    let fullDataFetched: MetaAdsetData[] = await AnalyticsApiService.fetchDateData(new Date('2025-01-01'), endDate, "31");
-    const ghlData: GHLData[] = await AnalyticsApiService.fetchGHLData();
-
-    const metaMap = new Map<string, MetaAdsetData>();
-
-    for (const metaItem of fetchedMetaData) {
-      const key = `${metaItem.date.toDateString()}_${ATO_TO_GHL_MAPPING[metaItem.adsetName]}`;
-      metaMap.set(key, metaItem);
+    let res;
+    if(force) {
+      res = await fetch("/api/ForceCacheUpdate");
+    } else {
+      res = await fetch("/api/Analytics");
     }
+    const json = await res.json();
+    const revivedMeta = reviveMetaData(json.fetchedMetaData);
+    const revivedFull = reviveMetaData(json.fullMetaData);
+    setCachedDate(json.cachedDate || "")
+    setMetaData(revivedMeta);
+    setFullData(revivedFull);
 
-    for (const ghlItem of ghlData) {
-      const key = `${new Date(ghlItem.dateFunded).toDateString()}_${ghlItem.adset}`;
-      const metaItem = metaMap.get(key);
-
-      if (metaItem) {
-        metaItem.conversions += 1;
-        metaItem.conversionValue += ghlItem.value;
-      } else {
-        const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
-        newMetaItem.date = new Date(ghlItem.dateFunded);
-        newMetaItem.conversions = 1;
-        newMetaItem.conversionValue = ghlItem.value;
-        fetchedMetaData.push(newMetaItem);
-        metaMap.set(key, newMetaItem);
-      }
-    }
-
-    setMetaData(fetchedMetaData);
-    setFullData(fullDataFetched);
+    setGhlData(json.ghlData);
     setReady(true);
-    console.log("MetaData refreshed and ready.");
   }, []);
 
-  // optionally, fetch on mount
-  useState(() => {
+  function reviveMetaData(data: any[]): MetaAdsetData[] {
+    return data.map(item => ({
+      ...item,
+      date: new Date(item.date),
+    }));
+  }
+
+
+  useEffect(() => {
     refreshMetaData();
-  });
+  }, [refreshMetaData]);
 
   return (
-    <AnalyticsContext.Provider value={{ metaData, fullData, refreshMetaData, ready }}>
+    <AnalyticsContext.Provider value={{ metaData, fullData, cachedDate, ghlData, refreshMetaData, ready }}>
       {children}
     </AnalyticsContext.Provider>
   );

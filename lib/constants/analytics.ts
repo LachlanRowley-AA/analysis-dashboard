@@ -39,6 +39,6 @@ export const metaAdsetGrouping: Record<string, string> = {
   };
 
   export const LTV_VALUES: Record<string, number> = {
-    "ATO": 5000,
-    "Machinery": 8000,
+    "ATO": 8000,
+    "Machinery": 15000,
   };

@@ -12,6 +12,7 @@
     "@mantine/core": "^8.3.12",
     "@mantine/hooks": "^8.3.12",
     "@tabler/icons-react": "^3.36.1",
+    "ioredis": "^5.9.2",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "react": "19.2.3",

@@ -97,7 +97,7 @@ export function RunRateChart({ analytics, comparisonData, metric }: RunRateChart
             data={graphData}
             series={[{ name: 'value', color: 'blue' }, { name: 'comparison', color: 'gray' }]}
             dataKey='day'
-            withPointLabels={showTooltip}
+            withPointLabels={false}
             connectNulls={false}
             withTooltip
         />

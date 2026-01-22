@@ -28,6 +28,7 @@ export async function GET(req: Request) {
     const APIurl = new URL(req.url);
     const endDateParam = APIurl.searchParams.get('endDateParam');
     const startDateParam = APIurl.searchParams.get('startDateParam');
+    const increment = APIurl.searchParams.get('increment') ? APIurl.searchParams.get('increment') : '1';
     const endDate = endDateParam ? new Date(endDateParam) : new Date()
     const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getFullYear(), endDate.getMonth(), 1)
     const timeRange = {
@@ -41,7 +42,7 @@ export async function GET(req: Request) {
       fields:
         'ad_name,adset_name,date_start,reach,spend,actions,video_p25_watched_actions,frequency,impressions,outbound_clicks_ctr,cpm,action_values',
       access_token: ACCESS_TOKEN,
-      time_increment: '1',
+      time_increment: increment ? increment.toString() : '1',
       time_range: JSON.stringify(timeRange),
       level: 'adset',
     }

@@ -1,47 +1,3 @@
-export interface MetricData {
-  metricName?: string;
-  totalSpent: number;
-  totalReach: number;
-  totalLeads: number;
-  totalConversions: number;
-  pipelineValue: number;
-  conversionRate: number;
-  engagementRate: number;
-  avgCPL: number;
-  avgCPA: number;
-  avgCTR: number;
-  avgCPM: number;
-  totalLinkClicks: number;
-  frequency: number;
-}
-
-export interface TimeSeriesData {
-  date: string;
-  reach: number;
-  engagement: number;
-  contacts: number;
-  leads: number;
-}
-
-export interface AnalyticsData {
-  metrics: MetricData
-  timeSeries: Array<{
-    date: string;
-    reach: number;
-    engagement: number;
-    contacts: number;
-    leads: number;
-  }>;
-  contactsByStatus: Array<{ status: string; count: number }>;
-  pipelineByStage: Array<{ stage: string; value: number }>;
-  ghlData: Array<GHLData>;
-}
-
-export interface ComparisonData {
-  current: AnalyticsData;
-  previous?: AnalyticsData;
-}
-
 export interface StatCardProps {
   icon: React.ReactNode;
   title: string;
@@ -52,7 +8,7 @@ export interface StatCardProps {
   lowerBetter?: boolean;
   neutral?: boolean;
   onClick?: () => void,
-
+  active?: boolean;
 }
 
 export interface MetaAdsetData {
@@ -98,9 +54,5 @@ export interface GHLData {
   adset: string;
   dateFunded: string;
   stageId: string;
-}
-
-export interface CategoryData {
-  ato: AnalyticsData;
-  machinery: AnalyticsData;
+  dateCreated?: string;
 }

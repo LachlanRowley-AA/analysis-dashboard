@@ -1,11 +1,6 @@
 import { Stack, Grid, Title, Select } from '@mantine/core';
-import { ComparisonData } from '../../types/analytics';
 import { MetricsGrid } from '../MetricsGrid';
-import { ChartCard } from '../ChartCard';
-import { PerformanceChart } from '../PerformanceChart';
-import { ComparisonBarChart } from '../ComparisonBarChart';
 import { useAnalytics } from '../DataStorageContext';
-import { useState } from 'react';
 import { MetaAdsetData } from '../../types/analytics';
 import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 import { LTVGrid } from '../LTV';
@@ -17,8 +12,8 @@ export const CategoryComparisonTab = () => {
   adsetNames.unshift("All");
 
   let copy = [...data.metaData];
-  let atoData :MetaAdsetData[] = [];
-  let machineryData :MetaAdsetData[] = [];
+  let atoData: MetaAdsetData[] = [];
+  let machineryData: MetaAdsetData[] = [];
   copy.forEach(item => {
     const category = metaAdsetGrouping[item.adsetName];
     if (category === "ATO") {
@@ -32,6 +27,7 @@ export const CategoryComparisonTab = () => {
   if (previousMonth < 0) {
     previousMonth = 11;
   }
+  // console.log("Data: ", atoData);
   const ATOPreviousMonthData = atoData.filter(item => item.date.getMonth() === previousMonth);
   const machineryPreviousMonthData = machineryData.filter(item => item.date.getMonth() === previousMonth);
   const ATOLastMonthData = mergeAdsetData(ATOPreviousMonthData, 'Last Month');

@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Grid, Switch, Group, Text } from '@mantine/core';
 import { StatCard } from './StatCard';
-import { AnalyticsData, MetaAdsetData, MetricData } from '../types/analytics';
+import { MetaAdsetData } from '../types/analytics';
 import {
   IconTrendingUp
 } from '@tabler/icons-react';

@@ -3,7 +3,7 @@ import { MetaAdsetData, GHLData } from '../../types/analytics';
 
 export class AnalyticsApiService {
 
-  static async fetchGHLData(): Promise<GHLData[]> {
+  static async fetchGHLFunded(): Promise<GHLData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
       return [];
     }
@@ -15,6 +15,26 @@ export class AnalyticsApiService {
     });
 
     if (!response.ok) {
+      throw new Error('Failed to fetch GHL data');
+    }
+
+    const ghlData = await response.json();
+    return ghlData.data ?? [];
+  }
+
+  static async fetchGHLData(): Promise<GHLData[]> {
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      return [];
+    }
+    const origin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+    const response = await fetch(`${origin}/api/GetGHLData`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      console.log(response.statusText, response.text)
       throw new Error('Failed to fetch GHL data');
     }
 
@@ -35,9 +55,6 @@ export class AnalyticsApiService {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
-    console.log(`Fetching MetaAdsetData from ${origin}/api/GetMetaMonthDailyData?startDateParam=${startDateString}&endDateParam=${endDateString}`);
-    console.log("Response status:", response);
-    console.log("Response ok:", response.status);
     if (!response.ok) {
       throw new Error('Failed to fetch data' + response.statusText);
     }

@@ -1,16 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, Group, Title, Button, Tabs, Loader } from '@mantine/core';
+import { Container, Group, Title, Button, Tabs, Loader, Text, Stack } from '@mantine/core';
 import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
 import { CategoryComparisonTab } from '../components/Dashboard/CategoryComparisonTab';
 import { TotalTab } from '../components/Dashboard/TotalComparisonTab';
 import { useAnalytics } from "@/components/DataStorageContext";
+import { GHLTab } from '@/components/Dashboard/GHLTab';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
-  const { refreshMetaData, ready } = useAnalytics();
+  const { refreshMetaData, ready, cachedDate } = useAnalytics();
   const [buttonClicked, setButtonClicked] = useState(false);
+  const text = cachedDate ? cachedDate.split('T')[0] : "";
+
+  console.log("text: ", text);
 
   // if (!ready) {
   //   return (
@@ -24,16 +28,20 @@ export default function Dashboard() {
     <Container size="xl" py="xl">
       <Group justify="space-between" mb="xl">
         <Title order={1}>Analytics Dashboard</Title>
-        <Button
-          onClick={async () => {
-            setButtonClicked(true);
-            console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
-            await refreshMetaData();
-          }}
-          loading={buttonClicked && !ready}
-        >
-          Load Data
-        </Button>
+        <Stack>
+          <Button
+            onClick={async () => {
+              setButtonClicked(true);
+              // console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
+              await refreshMetaData(true);
+            }}
+            loading={buttonClicked && !ready}
+          >
+            Load Data
+          </Button>
+          <Text>Last updated {text}</Text>
+
+        </Stack>
       </Group>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
@@ -41,6 +49,7 @@ export default function Dashboard() {
           <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
           <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
           <Tabs.Tab value="total">Total</Tabs.Tab>
+          <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="monthComparison">
@@ -56,6 +65,11 @@ export default function Dashboard() {
         <Tabs.Panel value="total">
           {<TotalTab />}
         </Tabs.Panel>
+
+        <Tabs.Panel value="ghl">
+          {<GHLTab />}
+        </Tabs.Panel>
+
       </Tabs>
     </Container>
   );
