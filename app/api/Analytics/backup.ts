@@ -35,22 +35,37 @@ export async function GET() {
     for (const metaItem of fetchedMetaData) {
         const key = `${metaItem.date.toDateString()}_${ATO_TO_GHL_MAPPING[metaItem.adsetName]}`;
         metaMap.set(key, metaItem);
+        metaItem.lead = 0;
     }
 
-    for (const ghlItem of ghlFunded) {
-        const key = `${new Date(ghlItem.dateFunded).toDateString()}_${ghlItem.adset}`;
+    console.log("metaMap: ", metaMap);
+
+    for (const ghlItem of ghlData) {
+        const key = `${new Date(ghlItem.dateCreated).toDateString()}_${ghlItem.adset}`;
+        console.log("Looking for key: ", key);
         const metaItem = metaMap.get(key);
 
         if (metaItem) {
-            metaItem.conversions += 1;
-            metaItem.conversionValue += ghlItem.value;
+            metaItem.lead++;
+            // console.log("Updating meta item: ", metaItem, metaItem.lead);
+            if (ghlItem.value > 0) {
+                metaItem.conversions += 1;
+                metaItem.conversionValue += ghlItem.value;
+            }
         } else {
-            const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
-            newMetaItem.date = new Date(ghlItem.dateFunded);
-            newMetaItem.conversions = 1;
-            newMetaItem.conversionValue = ghlItem.value;
-            fetchedMetaData.push(newMetaItem);
+            console.log("Not found")
         }
+        // } else {
+        //     const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
+        //     newMetaItem.date = new Date(ghlItem.dateFunded);
+        //     newMetaItem.lead++;
+        //     newMetaItem.adsetName = ghlItem.adset || "";
+        //     if (ghlItem.value > 0) {
+        //         newMetaItem.conversions = 1;
+        //         newMetaItem.conversionValue = ghlItem.value;
+        //     }
+        //     fetchedMetaData.push(newMetaItem);
+        // }
     }
     const cachedDate = new Date().toISOString()
     await cacheData(fetchedMetaData, fullMetaData);

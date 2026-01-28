@@ -22,13 +22,16 @@ export class AnalyticsApiService {
     return ghlData.data ?? [];
   }
 
-  static async fetchGHLData(): Promise<GHLData[]> {
+  static async fetchGHLData(startDate?: Date): Promise<GHLData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
       return [];
     }
     const origin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const query = startDate ? `?date=${startDate.toISOString().split('T')[0]}` : '';
+    console.log('query = ', query)
+    console.log(`fetching data from ${`${origin}/api/GetGHLData${query}`}`)
 
-    const response = await fetch(`${origin}/api/GetGHLData`, {
+    const response = await fetch(`${origin}/api/GetGHLData${query}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -64,5 +67,9 @@ export class AnalyticsApiService {
       ...item,
       date: new Date(item.date),
     }));
+  }
+
+  static async updateCacheData() {
+    const response = await fetch(`${origin}/api/UpdateCache`);
   }
 }

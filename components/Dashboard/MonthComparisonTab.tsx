@@ -7,7 +7,7 @@ import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 export const MonthComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
   const data = useAnalytics();
-  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName)));
+  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName || "")));
   adsetNames.unshift("All");
 
 
@@ -24,15 +24,17 @@ export const MonthComparisonTab = () => {
 
   const currentMonthData = filter.filter(item => item.date.getMonth() === new Date().getMonth());
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
+  // console.log("Adset names: ", adsetNames);
 
   return (
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md">This Month</Title>
         <Select
-          data={adsetNames.map(name => ({ value: name, label: name }))}
+          data={adsetNames.map(name => ({ value: name, label: name })) || ""}
           value={selectedAdset}
           onChange={setSelectedAdset}
+          py='md'
         />
         <MetricsGrid data={monthData} comparison={lastMonthData} dataArr={currentMonthData} comparisonArr={previousMonthData} />
         {/* <LTVGrid data={currentMonthData} comparison={previousMonthData} showComparison={true} /> */}

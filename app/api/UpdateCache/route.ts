@@ -1,19 +1,17 @@
-import { getCachedData, cacheData, getFullCachedData, cacheGHLData } from "@/lib/cache/redisManager";
+import { getCachedData, cacheData, getFullCachedData, cacheGHLData, getDateCached } from "@/lib/cache/redisManager";
 import { AnalyticsApiService } from "@/lib/services/api";
 import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
 import { createBlankMetaAdsetData } from "@/types/analytics";
+import { formatDateLocal } from "@/lib/utils/dateUtils";
 
 export async function GET() {
-    const MONTHS_TO_FETCH = 4;
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1)); startDate.setDate(1);
-    startDate.setDate(1);
+    const MONTHS_TO_FETCH = 2;
+    const startDate = new Date(await getDateCached());
     const endDate = new Date();
 
     let fetchedMetaData = await AnalyticsApiService.fetchDateData(startDate, endDate, "1");
     let fullMetaData = await AnalyticsApiService.fetchDateData(startDate, endDate, "31");
-    const ghlFunded = await AnalyticsApiService.fetchGHLFunded();
-    const ghlData = await AnalyticsApiService.fetchGHLData();
+    let ghlData = await AnalyticsApiService.fetchGHLData(startDate);
 
     const metaMap = new Map<string, any>();
 
@@ -22,8 +20,8 @@ export async function GET() {
         metaMap.set(key, metaItem);
     }
 
-    for (const ghlItem of ghlFunded) {
-        const key = `${new Date(ghlItem.dateFunded).toDateString()}_${ghlItem.adset}`;
+    for (const ghlItem of ghlData) {
+        const key = `${new Date(ghlItem.dateCreated).toDateString()}_${ghlItem.adset}`;
         const metaItem = metaMap.get(key);
 
         if (metaItem) {
@@ -37,10 +35,6 @@ export async function GET() {
             fetchedMetaData.push(newMetaItem);
         }
     }
-    let conversionSum = 0;
-    ghlFunded.forEach(item => conversionSum += item.value);
-    fullMetaData[fullMetaData.length - 1].conversions = ghlFunded.length;
-    fullMetaData[fullMetaData.length - 1].conversionValue = conversionSum;
 
     await cacheData(fetchedMetaData, fullMetaData);
     await cacheGHLData(ghlData);

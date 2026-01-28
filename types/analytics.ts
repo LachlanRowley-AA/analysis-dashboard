@@ -54,5 +54,6 @@ export interface GHLData {
   adset: string;
   dateFunded: string;
   stageId: string;
-  dateCreated?: string;
+  dateCreated: string;
+  owner?: string;
 }

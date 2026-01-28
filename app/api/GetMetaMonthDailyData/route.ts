@@ -4,12 +4,7 @@ const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN!
 const AD_ACCOUNT_ID = `act_${process.env.META_AD_ACCOUNT_ID}`
 const API_VERSION = 'v24.0'
 
-const formatDateLocal = (date: Date) =>
-  date.getFullYear() +
-  '-' +
-  String(date.getMonth() + 1).padStart(2, '0') +
-  '-' +
-  String(date.getDate()).padStart(2, '0')
+import { formatDateLocal } from "@/lib/utils/dateUtils"
 
 // Helper: extract action value
 const getActionValue = (actions: any, actionType: string): number => {
@@ -78,49 +73,49 @@ export async function GET(req: Request) {
     const df =
       allInsights.length > 0
         ? allInsights
-            .map((row) => {
-              const reach = Number(row.reach ?? 0)
-              const amountSpent = Number(row.spend ?? 0)
-              const impressions = Number(row.impressions ?? 0)
+          .map((row) => {
+            const reach = Number(row.reach ?? 0)
+            const amountSpent = Number(row.spend ?? 0)
+            const impressions = Number(row.impressions ?? 0)
 
-              const linkClicks = getActionValue(row.actions, 'link_click')
-              const leads = getActionValue(row.actions, 'lead')
+            const linkClicks = getActionValue(row.actions, 'link_click')
+            const leads = getActionValue(row.actions, 'lead')
 
-              return {
-                date: new Date(row.date_start),
-                adsetName: row.adset_name ?? '',
+            return {
+              date: new Date(row.date_start),
+              adsetName: row.adset_name ?? '',
 
-                reach,
-                amountSpent: Number(amountSpent.toFixed(2)),
-                linkClicks,
-                landingPageView: getActionValue(
-                  row.actions,
-                  'landing_page_view'
-                ),
-                lead: leads,
-                frequency: Number(row.frequency ?? 0),
+              reach,
+              amountSpent: Number(amountSpent.toFixed(2)),
+              linkClicks,
+              landingPageView: getActionValue(
+                row.actions,
+                'landing_page_view'
+              ),
+              lead: leads,
+              frequency: Number(row.frequency ?? 0),
 
-                cost_per_lead: leads
-                  ? Number((amountSpent / leads).toFixed(2))
-                  : 0,
+              cost_per_lead: leads
+                ? Number((amountSpent / leads).toFixed(2))
+                : 0,
 
-                impressions,
+              impressions,
 
-                ctr: impressions
-                  ? Number(((linkClicks / impressions) * 100).toFixed(2))
-                  : 0,
-                //Set to 0 and overwrite using GHL data
-                conversions: 0,
-                conversionValue: 0,
+              ctr: impressions
+                ? Number(((linkClicks / impressions) * 100).toFixed(2))
+                : 0,
+              //Set to 0 and overwrite using GHL data
+              conversions: 0,
+              conversionValue: 0,
 
-                cpm: Number(row.cpm ?? 0),
-              }
-            })
-            .sort(
-              (a, b) =>
-                a.date.getTime() - b.date.getTime() ||
-                a.adsetName.localeCompare(b.adsetName)
-            )
+              cpm: Number(row.cpm ?? 0),
+            }
+          })
+          .sort(
+            (a, b) =>
+              a.date.getTime() - b.date.getTime() ||
+              a.adsetName.localeCompare(b.adsetName)
+          )
         : []
 
     return Response.json(df)

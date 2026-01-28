@@ -17,6 +17,7 @@ import { LTVGrid } from './LTV';
 import { RunRateChart } from './RunRateChart';
 import { useAnalytics } from './DataStorageContext';
 import { LTVCost } from './LTVCtAC';
+import { Fragment } from 'react';
 
 interface MetricsGridProps {
   data: MetaAdsetData;
@@ -164,7 +165,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       title="Return on Ad Spend"
       value={(data.conversionValue / data.amountSpent).toFixed(2)}
       change={calculateChange((data.conversionValue / data.amountSpent), (comparison?.conversionValue ? comparison?.conversionValue / comparison?.amountSpent : 0))}
-      priorValue={comparison ? comparison.frequency.toLocaleString() : undefined}
+      priorValue={comparison ? (comparison.conversionValue / comparison.amountSpent).toLocaleString() : undefined}
       color="#228be6"
     />,
     <LTVGrid
@@ -198,9 +199,9 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
     const rowIndex = Math.floor(index / CARDS_PER_ROW);
     const isRowEnd =
       (index + 1) % CARDS_PER_ROW === 0 || index === StatCards.length - 1;
-
+    
     return (
-      <>
+      <Fragment key={`frag-card-${index}`}>
         <Grid.Col
           key={`card-${index}`}
           span={colSpan}
@@ -210,7 +211,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
         </Grid.Col>
 
         {isRowEnd && graphIndex === rowIndex && graph}
-      </>
+      </Fragment>
     );
   });
 

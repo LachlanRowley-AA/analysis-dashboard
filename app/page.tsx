@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, Group, Title, Button, Tabs, Loader, Text, Stack } from '@mantine/core';
+import { Container, Group, Title, Button, Tabs, Loader, Text, Stack, Center } from '@mantine/core';
 import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
 import { CategoryComparisonTab } from '../components/Dashboard/CategoryComparisonTab';
 import { TotalTab } from '../components/Dashboard/TotalComparisonTab';
 import { useAnalytics } from "@/components/DataStorageContext";
 import { GHLTab } from '@/components/Dashboard/GHLTab';
+import { ProjectionTab } from '@/components/Dashboard/ProjectionTab';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
@@ -14,15 +15,18 @@ export default function Dashboard() {
   const [buttonClicked, setButtonClicked] = useState(false);
   const text = cachedDate ? cachedDate.split('T')[0] : "";
 
-  console.log("text: ", text);
-
-  // if (!ready) {
-  //   return (
-  //     <Container size="xs" py={80}>
-  //       <Loader size="lg" variant="dots" />
-  //     </Container>
-  //   );
-  // }
+  if (!ready) {
+    return (
+      <Container size="xl" h='100vh'>
+        <Center h='100%'>
+          <Group>
+            <Loader size="lg" variant="dots" />
+            <Text>Loading Data</Text>
+          </Group>
+        </Center>
+      </Container>
+    );
+  }
 
   return (
     <Container size="xl" py="xl">
@@ -31,9 +35,10 @@ export default function Dashboard() {
         <Stack>
           <Button
             onClick={async () => {
-              setButtonClicked(true);
+              // setButtonClicked(true);
               // console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
               await refreshMetaData(true);
+              // await fetch('/api/UpdateCache')
             }}
             loading={buttonClicked && !ready}
           >
@@ -50,6 +55,7 @@ export default function Dashboard() {
           <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
           <Tabs.Tab value="total">Total</Tabs.Tab>
           <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
+          <Tabs.Tab value="projection">Project</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="monthComparison">
@@ -68,6 +74,10 @@ export default function Dashboard() {
 
         <Tabs.Panel value="ghl">
           {<GHLTab />}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="projection">
+          {<ProjectionTab />}
         </Tabs.Panel>
 
       </Tabs>

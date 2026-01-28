@@ -14,7 +14,13 @@ const CUSTOM_FIELD_IDS: Record<string, string> = {
 
 const PAGE_CAP = 50
 
-export async function GET() {
+export async function GET(req: Request) {
+  const APIurl = new URL(req.url);
+  let startDateParam = APIurl.searchParams.get("date") ?? "";
+  if(startDateParam) {
+    const splitDate = startDateParam.split('-');
+    startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
+  }
   try {
     let page = 1
     let allOpportunities: any[] = []
@@ -23,9 +29,11 @@ export async function GET() {
       const query = new URLSearchParams({
         location_id: LOCATION_ID,
         page: page.toString(),
+        date: startDateParam
       })
 
       const url = `https://services.leadconnectorhq.com/opportunities/search?${query}`
+      console.log(`url = ${url}`)
 
       const response = await fetch(url, {
         method: 'GET',
@@ -59,6 +67,7 @@ export async function GET() {
         stageId: opp.pipelineStageId,
         funded: opp.lastStageChangeAt,
         dateCreated: opp.createdAt,
+        owner: opp.assignedTo
       }
 
       const customLookup: Record<string, any> = {}

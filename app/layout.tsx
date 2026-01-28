@@ -35,7 +35,7 @@
         <head>
           <ColorSchemeScript />
         </head>
-        <body>
+        <body style={{backgroundColor: '#f2fafa'}}>
           <AnalyticsProvider>
             <MantineProvider>{children}</MantineProvider>
           </AnalyticsProvider>

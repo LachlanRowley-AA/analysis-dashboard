@@ -13,3 +13,8 @@ export const GHL_PIPELINE_IDS: Record<string, string> = {
     "4a8e3505-94ba-4a3a-8162-2ede17c4116b" : "No Shows"
 }
 
+
+export const GHL_STAFF_IDS: Record<string, string> = {
+    "y81EGLBUhdnuHW4lDoPs" : "Philip",
+    "nvZ9RG8XCllPKeGbpxR8" : "Jadd"
+}

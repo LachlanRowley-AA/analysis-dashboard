@@ -24,7 +24,7 @@ export const mergeAdsetData = (data: MetaAdsetData[], adsetName: string) => {
     const count = data.length;
     let mergedData: MetaAdsetData = {
         adsetName: adsetName,
-        date: new Date(),
+        date: data[data.length-1].date,
         reach: data.reduce((sum, item) => sum + item.reach, 0),
         amountSpent: data.reduce((sum, item) => sum + item.amountSpent, 0),
         linkClicks: data.reduce((sum, item) => sum + item.linkClicks, 0),

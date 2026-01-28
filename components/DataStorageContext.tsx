@@ -22,7 +22,6 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   const refreshMetaData = useCallback(async (force = false) => {
-    console.log("Refreshing Analytics Data, force=", force);  
     setReady(false);
 
     let res;
@@ -32,6 +31,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       res = await fetch("/api/Analytics");
     }
     const json = await res.json();
+    console.log("JSON Resposne: ", json)
     const revivedMeta = reviveMetaData(json.fetchedMetaData);
     const revivedFull = reviveMetaData(json.fullMetaData);
     setCachedDate(json.cachedDate || "")

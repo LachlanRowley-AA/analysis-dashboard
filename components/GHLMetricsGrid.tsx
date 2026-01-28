@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Grid, Switch, Group, Text, useMatches, Container } from '@mantine/core';
 import { StatCard } from './StatCard';
 import { GHLData } from '../types/analytics';
@@ -14,6 +14,7 @@ import {
 } from '@tabler/icons-react';
 import { numberFormatter } from '@/lib/formatter';
 import { GHL_PIPELINE_IDS } from '@/lib/constants/ghl';
+import { OwnershipChart } from './OwnershipChart';
 
 interface GHLMetricsGridProps {
   data: GHLData[];
@@ -74,8 +75,6 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
 
     return map;
   }
-
-  console.log(data);
   const stageCount = buildStageCount(data);
   const previousStageCount = comparison ? buildStageCount(comparison) : undefined;
 
@@ -97,14 +96,10 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
     return cumulative;
   }
 
-
   const cumulativeStageCount = buildCumulativeCounts(stageCount, GHLProgressPipeline);
   const cumulativePreviousStageCount = previousStageCount
     ? buildCumulativeCounts(previousStageCount, GHLProgressPipeline)
     : undefined;
-
-    console.log("stage count", stageCount)
-  console.log("Cumulative stage count", cumulativeStageCount);
 
   const stageCards = GHLProgressPipeline.map(stageName => {
     const value = cumulativeStageCount.get(stageName) ?? 0;
@@ -142,7 +137,7 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
       (index + 1) % CARDS_PER_ROW === 0 || index === stageCards.length - 1;
 
     return (
-      <>
+      <Fragment key={`frag-${index}`}>
         <Grid.Col
           key={`card-${index}`}
           span={colSpan}
@@ -152,7 +147,7 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
         </Grid.Col>
 
         {/* {isRowEnd && graphIndex === rowIndex && graph} */}
-      </>
+      </Fragment>
     );
   });
 
@@ -182,6 +177,7 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
       <Grid>
         {cards}
       </Grid>
+      <OwnershipChart data={data}/>
     </>
   );
 };
