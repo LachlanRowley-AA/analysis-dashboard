@@ -143,7 +143,7 @@ export const ProjectionTab = () => {
 
         <Group>
           <NumberInput
-            label="Change in adspend (monthly)"
+            label="Change in adspend (daily)"
             leftSection="$"
             placeholder="0"
             value={changeInAdSpent}
