@@ -8,7 +8,6 @@ import { Stepper, Container, Text } from '@mantine/core'
 export const GHLTab = () => {
     const { ghlData } = useAnalytics();
     if (!ghlData) {
-        console.log('no ghl data')
         return;
     }
 
@@ -18,7 +17,6 @@ export const GHLTab = () => {
     }
     const filteredData = ghlData.filter(item => item.dateCreated && new Date(item.dateCreated).getMonth() == new Date().getMonth())
     const comparisonData = ghlData.filter(item => item.dateCreated && new Date(item.dateCreated).getMonth() == previousMonth)
-    // console.log("Comparison data : ", comparisonData)
     return (
         <Container size='xl'>
             <Stepper active={-1}>

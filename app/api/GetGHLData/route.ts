@@ -33,7 +33,6 @@ export async function GET(req: Request) {
       })
 
       const url = `https://services.leadconnectorhq.com/opportunities/search?${query}`
-      console.log(`url = ${url}`)
 
       const response = await fetch(url, {
         method: 'GET',

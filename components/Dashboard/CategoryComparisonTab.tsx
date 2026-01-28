@@ -27,7 +27,7 @@ export const CategoryComparisonTab = () => {
   if (previousMonth < 0) {
     previousMonth = 11;
   }
-  // console.log("Data: ", atoData);
+  
   const ATOPreviousMonthData = atoData.filter(item => item.date.getMonth() === previousMonth);
   const machineryPreviousMonthData = machineryData.filter(item => item.date.getMonth() === previousMonth);
   const ATOLastMonthData = mergeAdsetData(ATOPreviousMonthData, 'Last Month');

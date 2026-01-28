@@ -35,7 +35,7 @@ export const ProjectionTab = () => {
     .sort((a: MetaAdsetData, b: MetaAdsetData) => a.date.getTime() - b.date.getTime());
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
 
-  //Use to switch between projecting currnet month data and prior month's
+  // Use to switch between projecting currnet month data and prior month's
   const lookedAtMonth = lookingAt ? monthData : lastMonthData;
   const lookedAtMonthDaily = lookingAt ? currentMonthData : previousMonthData;
   const DAYS_MONTH = lookedAtMonth.date.getDate();
@@ -72,7 +72,6 @@ export const ProjectionTab = () => {
   projectedMonth.costPerLead =
     projectedMonth.lead > 0 ? projectedMonth.amountSpent / projectedMonth.lead : 0;
 
-  console.log("date:", lookedAtMonth.date, DAYS_MONTH)
   const projectDays: MetaAdsetData[] = [];
 
   // helper to distribute a monthly total across days exactly
@@ -130,7 +129,6 @@ export const ProjectionTab = () => {
     projectDays.push(dayData);
   }
 
-  console.log(projectDays);
   return (
     <Stack gap="xl">
       <div>

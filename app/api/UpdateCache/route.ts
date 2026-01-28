@@ -45,6 +45,5 @@ export async function GET() {
         cachedDate,
         ghlData,
     }
-    // console.log("API Payload: ", payload);
     return Response.json(payload);
 }

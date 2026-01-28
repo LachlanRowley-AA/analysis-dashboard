@@ -43,9 +43,24 @@ type MetricKey = keyof Pick<
 
 export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, showComparison = false, dataArr, comparisonArr }) => {
   const [showAbsolute, setShowAbsolute] = useState(false);
-  const [showMetric, setShowMetric] = useState<MetricKey>('lead');
+  const [showMetric, setShowMetricState] = useState<MetricKey>('lead');
   const [graphIndex, setGraphIndex] = useState<number>(-1);
   const fullData: MetaAdsetData[] = useAnalytics().metaData;
+
+  // function setGraphIndex(val: number) {
+  //   if (graphIndex !== val) {
+  //     setGraphIndexState(val);
+  //   } else {
+  //     setGraphIndex(-1);
+  //   }
+  // }
+
+  function setShowMetric(val: MetricKey) {
+    if (showMetric === val) {
+      setGraphIndex(-1);
+    }
+    setShowMetricState(val);
+  }
 
   const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
     if (!previous) return undefined;
@@ -199,7 +214,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
     const rowIndex = Math.floor(index / CARDS_PER_ROW);
     const isRowEnd =
       (index + 1) % CARDS_PER_ROW === 0 || index === StatCards.length - 1;
-    
+
     return (
       <Fragment key={`frag-card-${index}`}>
         <Grid.Col

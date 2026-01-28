@@ -31,7 +31,6 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       res = await fetch("/api/Analytics");
     }
     const json = await res.json();
-    console.log("JSON Resposne: ", json)
     const revivedMeta = reviveMetaData(json.fetchedMetaData);
     const revivedFull = reviveMetaData(json.fullMetaData);
     setCachedDate(json.cachedDate || "")

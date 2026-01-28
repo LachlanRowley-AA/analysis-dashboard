@@ -11,7 +11,7 @@ export const MonthComparisonTab = () => {
   adsetNames.unshift("All");
 
 
-  let filter = selectedAdset && selectedAdset != 'All' ? 
+  let filter = selectedAdset && selectedAdset != 'All' ?
     data.metaData.filter(item => item.adsetName === selectedAdset) : data.metaData;
 
   let previousMonth = new Date().getMonth() - 1;
@@ -21,10 +21,8 @@ export const MonthComparisonTab = () => {
   const previousMonthData = filter.filter(item => item.date.getMonth() === previousMonth);
   const lastMonthData = mergeAdsetData(previousMonthData, 'Last Month');
 
-
   const currentMonthData = filter.filter(item => item.date.getMonth() === new Date().getMonth());
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
-  // console.log("Adset names: ", adsetNames);
 
   return (
     <Stack gap="xl">

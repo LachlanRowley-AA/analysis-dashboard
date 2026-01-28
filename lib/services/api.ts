@@ -28,8 +28,6 @@ export class AnalyticsApiService {
     }
     const origin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const query = startDate ? `?date=${startDate.toISOString().split('T')[0]}` : '';
-    console.log('query = ', query)
-    console.log(`fetching data from ${`${origin}/api/GetGHLData${query}`}`)
 
     const response = await fetch(`${origin}/api/GetGHLData${query}`, {
       method: 'GET',
@@ -37,7 +35,6 @@ export class AnalyticsApiService {
     });
 
     if (!response.ok) {
-      console.log(response.statusText, response.text)
       throw new Error('Failed to fetch GHL data');
     }
 

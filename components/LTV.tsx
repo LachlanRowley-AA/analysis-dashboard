@@ -23,7 +23,6 @@ const calculateLTV = (data: MetaAdsetData[]): number => {
     }
     return 0;
   })
-  // console.log("dataLTV: ", dataLTV)
   return dataLTV.reduce((sum, val) => sum + val, 0);
 }
 
@@ -45,7 +44,6 @@ export const LTVGrid: React.FC<LTVGridProps> = ({ data, comparison, showComparis
       return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
     }
   };
-  // console.log("LTVGrid Render:", { data, comparison });
 
   const current = calculateLTV(data);
   const prior = comparison ? calculateLTV(comparison) : undefined;

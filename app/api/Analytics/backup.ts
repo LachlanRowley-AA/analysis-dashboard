@@ -17,7 +17,6 @@ export async function GET() {
 
     const date = await getDateCached();
     if (cached.length > 0 && fullCachedData.length > 0) {
-        console.log("Returning cached data from Redis.", cached.length);
         return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
     }
 
@@ -38,22 +37,17 @@ export async function GET() {
         metaItem.lead = 0;
     }
 
-    console.log("metaMap: ", metaMap);
-
     for (const ghlItem of ghlData) {
         const key = `${new Date(ghlItem.dateCreated).toDateString()}_${ghlItem.adset}`;
-        console.log("Looking for key: ", key);
         const metaItem = metaMap.get(key);
 
         if (metaItem) {
             metaItem.lead++;
-            // console.log("Updating meta item: ", metaItem, metaItem.lead);
             if (ghlItem.value > 0) {
                 metaItem.conversions += 1;
                 metaItem.conversionValue += ghlItem.value;
             }
         } else {
-            console.log("Not found")
         }
         // } else {
         //     const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
@@ -75,6 +69,5 @@ export async function GET() {
         cachedDate,
         ghlData
     }
-    // console.log("API Payload: ", payload);
     return Response.json(payload);
 }

@@ -17,7 +17,6 @@ export async function GET() {
 
     const date = await getDateCached();
     if (cached.length > 0 && fullCachedData.length > 0) {
-        console.log("Returning cached data from Redis.", cached.length);
         return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
     }
 
@@ -60,6 +59,5 @@ export async function GET() {
         cachedDate,
         ghlData
     }
-    // console.log("API Payload: ", payload);
     return Response.json(payload);
 }
