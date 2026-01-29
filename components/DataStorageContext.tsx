@@ -8,7 +8,8 @@ type AnalyticsContextType = {
   fullData: MetaAdsetData[];
   cachedDate: string;
   ghlData: GHLData[];
-  refreshMetaData: (force: boolean) => Promise<void>;
+  refreshMetaData: (force?: boolean) => Promise<void>;
+  updateMetaData: () => Promise<void>;
   ready: boolean;
 };
 
@@ -21,40 +22,63 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [cachedDate, setCachedDate] = useState<string>("")
   const [ready, setReady] = useState(false);
 
-  const refreshMetaData = useCallback(async (force = false) => {
-    setReady(false);
-
-    let res;
-    if(force) {
-      res = await fetch("/api/ForceCacheUpdate");
-    } else {
-      res = await fetch("/api/Analytics");
-    }
-    const json = await res.json();
-    const revivedMeta = reviveMetaData(json.fetchedMetaData);
-    const revivedFull = reviveMetaData(json.fullMetaData);
-    setCachedDate(json.cachedDate || "")
-    setMetaData(revivedMeta);
-    setFullData(revivedFull);
-
-    setGhlData(json.ghlData);
-    setReady(true);
-  }, []);
-
-  function reviveMetaData(data: any[]): MetaAdsetData[] {
+  // Revive dates from JSON
+  const reviveMetaData = useCallback((data: any[]): MetaAdsetData[] => {
     return data.map(item => ({
       ...item,
       date: new Date(item.date),
     }));
-  }
+  }, []);
 
+  // Fetch full data (force bypass cache optional)
+  const refreshMetaData = useCallback(async (force = false) => {
+    setReady(false);
+
+    const res = await fetch(force ? "/api/ForceCacheUpdate" : "/api/Analytics");
+    const json = await res.json();
+
+    setCachedDate(json.cachedDate || "");
+    setMetaData(reviveMetaData(json.fetchedMetaData));
+    setFullData(reviveMetaData(json.fullMetaData || []));
+    setGhlData(json.ghlData || []);
+    setReady(true);
+  }, [reviveMetaData]);
+
+  // Update cache and merge with current metaData
+  const updateMetaData = useCallback(async () => {
+    setReady(false);
+
+    const res = await fetch('/api/UpdateCache');
+    const json = await res.json();
+    const revivedMeta = reviveMetaData(json.fetchedMetaData);
+
+    setCachedDate(json.cachedDate || "");
+
+    // Merge new data with existing data, avoiding duplicates by date+adset
+    setMetaData(prev => {
+      const map = new Map(prev.map(item => [`${item.date.toDateString()}_${item.adsetName}`, item]));
+      for (const item of revivedMeta) {
+        const key = `${item.date.toDateString()}_${item.adsetName}`;
+        if (map.has(key)) {
+          // Merge conversions/values if needed
+          map.get(key)!.conversions += item.conversions;
+          map.get(key)!.conversionValue += item.conversionValue;
+        } else {
+          map.set(key, item);
+        }
+      }
+      return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+    });
+
+    setReady(true);
+  }, [reviveMetaData]);
 
   useEffect(() => {
     refreshMetaData();
   }, [refreshMetaData]);
 
   return (
-    <AnalyticsContext.Provider value={{ metaData, fullData, cachedDate, ghlData, refreshMetaData, ready }}>
+    <AnalyticsContext.Provider value={{ metaData, fullData, cachedDate, ghlData, refreshMetaData, updateMetaData, ready }}>
       {children}
     </AnalyticsContext.Provider>
   );

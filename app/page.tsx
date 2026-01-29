@@ -11,7 +11,7 @@ import { ProjectionTab } from '@/components/Dashboard/ProjectionTab';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
-  const { refreshMetaData, ready, cachedDate } = useAnalytics();
+  const { refreshMetaData, ready, cachedDate, updateMetaData } = useAnalytics();
   const [buttonClicked, setButtonClicked] = useState(false);
   const text = cachedDate ? cachedDate.split('T')[0] : "";
 
@@ -37,7 +37,8 @@ export default function Dashboard() {
             onClick={async () => {
               // setButtonClicked(true);
               // console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
-              await refreshMetaData(true);
+              // await refreshMetaData(true);
+              await updateMetaData();
               // await fetch('/api/UpdateCache')
             }}
             loading={buttonClicked && !ready}

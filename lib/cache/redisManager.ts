@@ -2,16 +2,15 @@ import Redis from 'ioredis';
 import { GHLData, MetaAdsetData } from '../../types/analytics';
 
 export const redis = new Redis({
-  host: process.env.REDIS_URL,
-  port: Number(process.env.REDIS_PORT),
-  password: process.env.REDIS_API_PASS,
-  username: 'default'
+    host: process.env.REDIS_URL,
+    port: Number(process.env.REDIS_PORT),
+    password: process.env.REDIS_API_PASS,
+    username: 'default'
 });
 
 
 export async function cacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]): Promise<void> {
     await redis.del('metaAdsetData');
-    await redis.del('metaAdsetData:zset');
     await redis.del('fullMetaAdsetData');
     for (const item of data) {
         await redis.zadd('metaAdsetData', convertToUnix(item.date), JSON.stringify(item));
@@ -22,7 +21,26 @@ export async function cacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]
     await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
 }
 
-function convertToUnix(date : Date) : number {
+export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]): Promise<void> {
+    //Remove the elements from the same day --> can't filter meta
+    const now = new Date();
+
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    await redis.zremrangebyscore(`metaAdsetData`, convertToUnix(todayMidnight), 'inf');
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    await redis.zremrangebyscore('fullMetaAdsetData', convertToUnix(startOfMonth), 'inf')
+
+    for (const item of data) {
+        await redis.zadd('metaAdsetData', convertToUnix(item.date), JSON.stringify(item));
+    }
+    for (const item of fullData) {
+        await redis.zadd('fullMetaAdsetData', convertToUnix(item.date), JSON.stringify(item));
+    }
+    return;
+}
+
+function convertToUnix(date: Date): number {
     return Math.floor(date.getTime() / 1000) ?? 0
 }
 
