@@ -2,7 +2,6 @@ import { start } from 'repl';
 import { MetaAdsetData, GHLData } from '../../types/analytics';
 
 export class AnalyticsApiService {
-
   static async fetchGHLFunded(): Promise<GHLData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
       return [];

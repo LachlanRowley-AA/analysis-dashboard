@@ -1,4 +1,4 @@
-import { getCachedData, cacheData, getFullCachedData, getDateCached, getCachedGHLData, cacheGHLData } from "@/lib/cache/redisManager";
+import { getCachedData, cacheData, getFullCachedData, getDateCached, getCachedGHLData, cacheGHLData, getDateCachedUnix } from "@/lib/cache/redisManager";
 import { AnalyticsApiService } from "@/lib/services/api";
 import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
 import { createBlankMetaAdsetData } from "@/types/analytics";
@@ -16,6 +16,8 @@ export async function GET() {
 
 
     const date = await getDateCached();
+    const unixDate = await getDateCachedUnix();
+    console.log("unixDate: ",unixDate);
     if (cached.length > 0 && fullCachedData.length > 0) {
         return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
     }

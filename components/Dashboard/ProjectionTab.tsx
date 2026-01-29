@@ -156,7 +156,7 @@ export const ProjectionTab = () => {
             value={performanceDegradation}
             onChange={setPerformanceDegradation}
           />
-          <Switch label="Compare which month" checked={lookingAt} onChange={(event) => setLookingAt(event.currentTarget.checked)} />
+          <Switch label="Compare current month" checked={lookingAt} onChange={(event) => setLookingAt(event.currentTarget.checked)} />
         </Group>
 
         <MetricsGrid

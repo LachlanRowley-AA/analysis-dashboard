@@ -5,6 +5,7 @@ import { createBlankMetaAdsetData } from "@/types/analytics";
 import { formatDateLocal } from "@/lib/utils/dateUtils";
 
 export async function GET() {
+    //Max months to go back
     const MONTHS_TO_FETCH = 2;
     const startDate = new Date(await getDateCached());
     const endDate = new Date();
