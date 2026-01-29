@@ -16,6 +16,9 @@ export async function cacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]
     for (const item of data) {
         await redis.zadd('metaAdsetData', convertToUnix(item.date), JSON.stringify(item));
     }
+    for (const item of fullData) {
+        await redis.zadd('fullMetaAdsetData', convertToUnix(item.date), JSON.stringify(item));
+    }
     await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
 }
 
@@ -29,7 +32,7 @@ export async function getCachedData(): Promise<MetaAdsetData[]> {
     return mappedData;
 }
 export async function getFullCachedData(): Promise<MetaAdsetData[]> {
-    const data = await redis.lrange('fullMetaAdsetData', 0, -1);
+    const data = await redis.zrange('fullMetaAdsetData', 0, -1);
     const mappedData = data.map(item => JSON.parse(item) as MetaAdsetData);
     return mappedData;
 }

@@ -22,6 +22,8 @@ export async function GET() {
         return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
     }
 
+    console.log("Failed to find cached data, fetching", cached.length, fullCachedData.length)
+
     const MONTHS_TO_FETCH = 2;
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1)); startDate.setDate(1);
