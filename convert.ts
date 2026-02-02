@@ -9,7 +9,7 @@ const ZSET_KEY = "metaAdsetData:zset";
 
   const items = await client.lRange(LIST_KEY, 0, -1);
 
-  console.log(`Found ${items.length} records`);
+  // console.log(`Found ${items.length} records`);
 
   for (const item of items) {
     const parsed = JSON.parse(item);
@@ -24,6 +24,6 @@ const ZSET_KEY = "metaAdsetData:zset";
     });
   }
 
-  console.log("Migration complete");
+  // console.log("Migration complete");
   await client.quit();
 })();

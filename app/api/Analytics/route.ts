@@ -85,12 +85,9 @@ export async function GET() {
 
     const date = await getDateCached();
     const unixDate = await getDateCachedUnix();
-    console.log("unixDate: ", unixDate);
     if (cached.length > 0 && fullCachedData.length > 0) {
         return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
     }
-
-    console.log("Failed to find cached data, fetching", cached.length, fullCachedData.length)
 
     const MONTHS_TO_FETCH = 2;
     const startDate = new Date();

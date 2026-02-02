@@ -12,12 +12,19 @@ const CUSTOM_FIELD_IDS: Record<string, string> = {
   dateFunded: '4ZkP43R1IirhstWNcw4E',
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const APIurl = new URL(req.url);
+  let startDateParam = APIurl.searchParams.get("date") ?? "";
+  if (startDateParam) {
+    const splitDate = startDateParam.split('-');
+    startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
+  }
   try {
     const query = new URLSearchParams({
       pipeline_id: PIPELINE_ID,
       pipeline_stage_id: PIPELINE_STAGE_ID,
       location_id: LOCATION_ID,
+      date: startDateParam
     })
 
     const url = `https://services.leadconnectorhq.com/opportunities/search?${query}`

@@ -13,7 +13,11 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
   const { refreshMetaData, ready, cachedDate, updateMetaData } = useAnalytics();
   const [buttonClicked, setButtonClicked] = useState(false);
-  const text = cachedDate ? cachedDate.split('T')[0] : "";
+  let text = ""
+  if(cachedDate) {
+    const date = new Date(cachedDate);
+    text = date.toLocaleString("en-AU", {timeZone: "Australia/Sydney"})
+  }
 
   if (!ready) {
     return (

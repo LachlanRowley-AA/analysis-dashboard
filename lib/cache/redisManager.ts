@@ -30,13 +30,18 @@ export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdset
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     await redis.zremrangebyscore('fullMetaAdsetData', convertToUnix(startOfMonth), 'inf')
+    await redis.zremrangebyscore('testData', convertToUnix(startOfMonth), 'inf')
+
 
     for (const item of data) {
         await redis.zadd('metaAdsetData', convertToUnix(item.date), JSON.stringify(item));
     }
     for (const item of fullData) {
         await redis.zadd('fullMetaAdsetData', convertToUnix(item.date), JSON.stringify(item));
+        await redis.zadd('testData', convertToUnix(item.date), JSON.stringify(item))
     }
+    // await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
+
     return;
 }
 

@@ -55,6 +55,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
   //   }
   // }
 
+
   function setShowMetric(val: MetricKey) {
     if (showMetric === val) {
       setGraphIndex(-1);
@@ -93,7 +94,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       key={'cpl'}
       icon={<IconMessage size={28} />}
       title="Cost Per Lead"
-      value={`$${numberFormatter.format(data.amountSpent / data.lead)}`}
+      value={data.lead > 0 ? `$${numberFormatter.format(data.amountSpent / data.lead)}` : "No leads"}
       change={calculateChange(data.amountSpent / data.lead, comparison ? comparison.amountSpent / comparison.lead : undefined, true)}
       priorValue={comparison ? `$${numberFormatter.format(comparison.amountSpent / comparison.lead)}` : undefined}
       color="#40c057"
@@ -114,7 +115,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       key={'cta'}
       icon={<IconTrendingUp size={28} />}
       title="Cost Per Acquisition"
-      value={`$${numberFormatter.format(data.amountSpent / data.conversions)}`}
+      value={data.conversions != 0 ? `$${numberFormatter.format(data.amountSpent / data.conversions)}` : "No conversions"}
       change={calculateChange(data.amountSpent / data.conversions, comparison ? comparison?.amountSpent / comparison?.conversions : 0, true)}
       lowerBetter
       color="#f06595"
@@ -153,7 +154,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       neutral
       onClick={() => setShowMetric("amountSpent")}
       active={showMetric === 'amountSpent'}
-
     />,
     <StatCard
       key={'ctr'}
@@ -204,6 +204,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       value={(data.conversions.toString())}
       change={calculateChange((data.conversions), (comparison?.conversions ? comparison?.conversions : 0))}
       priorValue={comparison ? comparison.conversions.toString() : undefined}
+      onClick={() => setShowMetric("conversions")}
+      active={showMetric === 'conversions'}
       color="#228be6"
     />,
 

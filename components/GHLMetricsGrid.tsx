@@ -1,26 +1,31 @@
 import { Fragment, useState } from 'react';
-import { Grid, Switch, Group, Text, useMatches, Container } from '@mantine/core';
+import {
+  Grid,
+  Switch,
+  Group,
+  Text,
+  useMatches,
+  Container,
+  Paper,
+  Title,
+} from '@mantine/core';
 import { StatCard } from './StatCard';
 import { GHLData } from '../types/analytics';
 import {
-  IconUsers,
-  IconTrendingUp,
   IconMessage,
-  IconCurrencyDollar,
-  IconUserPlus,
-  IconPercentage,
-  IconChartLine,
-  IconCoin,
 } from '@tabler/icons-react';
 import { numberFormatter } from '@/lib/formatter';
 import { GHL_PIPELINE_IDS } from '@/lib/constants/ghl';
-import { OwnershipChart } from './OwnershipChart';
 
-interface GHLMetricsGridProps {
-  data: GHLData[];
-  comparison?: GHLData[];
-  showComparison?: boolean;
-}
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
 
 const MERGED_STAGE_MAP: Record<string, string> = {
   'Discovery Session Booked': 'New Leads',
@@ -31,35 +36,79 @@ const normalizeStage = (stageId: string) => {
   return MERGED_STAGE_MAP[name] ?? name;
 };
 
-const GHLProgressPipeline = ['New Leads', 'Supporting Docs Requested', 'Work in Progress', 'Qualified & Quoted', 'Approved', 'Funded']
+const GHLProgressPipeline = [
+  'New Leads',
+  'Supporting Docs Requested',
+  'Work in Progress',
+  'Qualified & Quoted',
+  'Approved',
+  'Funded',
+];
 
-export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison, showComparison = false }) => {
-  const [showAbsolute, setShowAbsolute] = useState(false);
-  const [graphIndex, setGraphIndex] = useState<number>(-1);
+function buildPipelineSplit(data: GHLData[]) {
+  let inPipeline = 0;
+  let outOfPipeline = 0;
 
-  const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
-    if (!previous) return undefined;
-    if (showAbsolute) {
-      const absoluteChange = current - previous;
-      const prefix = absoluteChange >= 0 ? '+' : '';
-      if (isCurrency) {
-        return `${prefix}$${numberFormatter.format(Math.abs(absoluteChange))}`;
-      }
-      return `${prefix}${numberFormatter.format(absoluteChange)}`;
+  data.forEach(item => {
+    const stageName = normalizeStage(item.stageId);
+    if (GHLProgressPipeline.includes(stageName)) {
+      inPipeline++;
     } else {
-      const currentPercent = current / data.length * 100;
-      const prevPercent = previous / (comparison?.length ?? 1) * 100;
-      const change = currentPercent - prevPercent;
-      return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+      outOfPipeline++;
     }
-  };
+  });
+
+  return [
+    { name: 'In Pipeline', value: inPipeline, fill: '#82ca9d' },
+    { name: 'Out of Pipeline', value: outOfPipeline, fill: "#5f5f5f" },
+  ];
+}
+
+interface PipelineBarChartProps {
+  title: string;
+  data: { name: string; value: number, fill: string }[];
+}
+
+const PipelineBarChart: React.FC<PipelineBarChartProps> = ({ title, data }) => {
+  return (
+    <Paper p="md" radius="md" withBorder>
+      <Title order={5} mb="sm">
+        {title}
+      </Title>
+
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data}>
+          <XAxis dataKey="name" />
+          <YAxis allowDecimals={false} />
+          <Tooltip />
+          <Bar dataKey="value" />
+        </BarChart>
+      </ResponsiveContainer>
+    </Paper>
+  );
+};
+
+
+interface GHLMetricsGridProps {
+  data: GHLData[];
+  comparison?: GHLData[];
+  showComparison?: boolean;
+}
+
+export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({
+  data,
+  comparison,
+  showComparison = false,
+}) => {
+  const [showAbsolute, setShowAbsolute] = useState(false);
 
   const colSpan = useMatches({
     base: 12,
     sm: 6,
     md: 4,
     lg: 3,
-  })
+  });
+
 
   function buildStageCount(data: GHLData[]) {
     const map = new Map<string, number>();
@@ -75,8 +124,6 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
 
     return map;
   }
-  const stageCount = buildStageCount(data);
-  const previousStageCount = comparison ? buildStageCount(comparison) : undefined;
 
   function buildCumulativeCounts(
     stageCount: Map<string, number>,
@@ -85,21 +132,47 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
     const cumulative = new Map<string, number>();
     let runningTotal = 0;
 
-    // iterate from END → START
     for (let i = pipeline.length - 1; i >= 0; i--) {
       const stage = pipeline[i];
       runningTotal += stageCount.get(stage) ?? 0;
-      // runningTotal = stageCount.get(stage) ?? 0;
       cumulative.set(stage, runningTotal);
     }
 
     return cumulative;
   }
 
-  const cumulativeStageCount = buildCumulativeCounts(stageCount, GHLProgressPipeline);
+  const stageCount = buildStageCount(data);
+  const previousStageCount = comparison
+    ? buildStageCount(comparison)
+    : undefined;
+
+  const cumulativeStageCount = buildCumulativeCounts(
+    stageCount,
+    GHLProgressPipeline
+  );
+
   const cumulativePreviousStageCount = previousStageCount
     ? buildCumulativeCounts(previousStageCount, GHLProgressPipeline)
     : undefined;
+
+  const calculateChange = (
+    current: number,
+    previous?: number
+  ): string | undefined => {
+    if (!previous) return undefined;
+
+    if (showAbsolute) {
+      const diff = current - previous;
+      return `${diff >= 0 ? '+' : ''}${diff}`;
+    }
+
+    const currentPct = (current / (data.length || 1)) * 100;
+    const prevPct =
+      (previous / (comparison?.length || 1)) * 100;
+
+    const change = currentPct - prevPct;
+    return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+  };
 
   const stageCards = GHLProgressPipeline.map(stageName => {
     const value = cumulativeStageCount.get(stageName) ?? 0;
@@ -113,71 +186,85 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({ data, comparison
         value={
           showAbsolute
             ? value.toLocaleString()
-            : `${numberFormatter.format(value / (data.length || 1) * 100)}%`
+            : `${numberFormatter.format(
+              (value / (data.length || 1)) * 100
+            )}%`
         }
         color="#ffa94d"
         priorValue={
           comparison
             ? showAbsolute
               ? prevValue?.toLocaleString()
-              : `${numberFormatter.format((prevValue || 0) / (comparison.length || 1) * 100)}%`
-            : "0"
+              : `${numberFormatter.format(
+                ((prevValue || 0) /
+                  (comparison.length || 1)) *
+                100
+              )}%`
+            : '0'
         }
-        change={calculateChange(value, prevValue, false)}
+        change={calculateChange(value, prevValue)}
       />
     );
   });
 
-
   const CARDS_PER_ROW = 12 / colSpan;
 
-  const cards = stageCards.map((card, index) => {
-    const rowIndex = Math.floor(index / CARDS_PER_ROW);
-    const isRowEnd =
-      (index + 1) % CARDS_PER_ROW === 0 || index === stageCards.length - 1;
-
-    return (
-      <Fragment key={`frag-${index}`}>
-        <Grid.Col
-          key={`card-${index}`}
-          span={colSpan}
-          onClick={() => setGraphIndex(rowIndex)}
-        >
-          {card}
-        </Grid.Col>
-
-        {/* {isRowEnd && graphIndex === rowIndex && graph} */}
-      </Fragment>
-    );
-  });
+  const cards = stageCards.map((card, index) => (
+    <Fragment key={index}>
+      <Grid.Col span={colSpan}>{card}</Grid.Col>
+    </Fragment>
+  ));
 
 
+  const currentPipelineData = buildPipelineSplit(data);
+  const comparisonPipelineData = comparison
+    ? buildPipelineSplit(comparison)
+    : null;
 
   return (
     <>
       {showComparison && (
         <Group justify="flex-end" mb="md">
           <Group gap="xs">
-            <Text size="sm" c="dimmed">Percentage</Text>
+            <Text size="sm" c="dimmed">
+              Percentage
+            </Text>
             <Switch
               checked={showAbsolute}
-              onChange={(event) => setShowAbsolute(event.currentTarget.checked)}
+              onChange={event =>
+                setShowAbsolute(event.currentTarget.checked)
+              }
               size="md"
             />
-            <Text size="sm" c="dimmed">Numeric</Text>
+            <Text size="sm" c="dimmed">
+              Numeric
+            </Text>
           </Group>
         </Group>
-      )
-      }
-      <Container bd="black 1px solid" p="sm" size="xl">
-        <Grid>
-          {cards}
+      )}
+
+      <Container p="sm" size="xl">
+        <Grid>{cards}</Grid>
+
+        {/* Pipeline vs Not Pipeline charts */}
+        <Grid mt="lg">
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <PipelineBarChart
+              title="Current Period"
+              data={currentPipelineData}
+            />
+          </Grid.Col>
+
+          {comparisonPipelineData && (
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <PipelineBarChart
+                title="Previous Period"
+                data={comparisonPipelineData}
+              />
+            </Grid.Col>
+          )}
         </Grid>
       </Container>
-      <Grid>
-        {cards}
-      </Grid>
-      <OwnershipChart data={data}/>
     </>
   );
 };

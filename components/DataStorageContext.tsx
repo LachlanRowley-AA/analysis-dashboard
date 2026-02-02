@@ -52,23 +52,31 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     const json = await res.json();
     const revivedMeta = reviveMetaData(json.fetchedMetaData);
 
+    console.log("Update func called")
+
     setCachedDate(json.cachedDate || "");
 
     // Merge new data with existing data, avoiding duplicates by date+adset
     setMetaData(prev => {
-      const map = new Map(prev.map(item => [`${item.date.toDateString()}_${item.adsetName}`, item]));
+      const map = new Map(prev.map(item => [`${item.date.toDateString()}_${item.adsetName}`, { ...item }]));
+
       for (const item of revivedMeta) {
         const key = `${item.date.toDateString()}_${item.adsetName}`;
         if (map.has(key)) {
-          // Merge conversions/values if needed
-          map.get(key)!.conversions += item.conversions;
-          map.get(key)!.conversionValue += item.conversionValue;
+          const existing = map.get(key)!;
+          map.set(key, {
+            ...existing,
+            conversions: item.conversions,
+            conversionValue: item.conversionValue
+          });
         } else {
-          map.set(key, item);
+          map.set(key, { ...item });
         }
       }
+
       return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
     });
+
 
     setReady(true);
   }, [reviveMetaData]);

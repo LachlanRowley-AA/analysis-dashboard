@@ -2,13 +2,14 @@ import { start } from 'repl';
 import { MetaAdsetData, GHLData } from '../../types/analytics';
 
 export class AnalyticsApiService {
-  static async fetchGHLFunded(): Promise<GHLData[]> {
+  static async fetchGHLFunded(startDate? : Date): Promise<GHLData[]> {
     if (process.env.NEXT_PHASE === "phase-production-build") {
       return [];
     }
     const origin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const query = startDate ? `?date=${startDate.toISOString().split('T')[0]}` : '';
 
-    const response = await fetch(`${origin}/api/GetGHLFunded`, {
+    const response = await fetch(`${origin}/api/GetGHLFunded${query}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });

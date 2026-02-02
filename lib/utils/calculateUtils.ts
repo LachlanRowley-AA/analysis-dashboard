@@ -25,7 +25,6 @@ export const mergeAdsetData = (data: MetaAdsetData[], adsetName: string) => {
     if(data.length == 0) {
         return createBlankMetaAdsetData("");
     }
-    console.log(data);
     let mergedData: MetaAdsetData = {
         adsetName: adsetName,
         date: data[data.length-1].date ?? Date.now(),

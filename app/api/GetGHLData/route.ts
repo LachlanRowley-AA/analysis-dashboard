@@ -17,7 +17,7 @@ const PAGE_CAP = 50
 export async function GET(req: Request) {
   const APIurl = new URL(req.url);
   let startDateParam = APIurl.searchParams.get("date") ?? "";
-  if(startDateParam) {
+  if (startDateParam) {
     const splitDate = startDateParam.split('-');
     startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
   }
