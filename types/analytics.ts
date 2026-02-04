@@ -28,9 +28,9 @@ export interface MetaAdsetData {
   cpm: number;
 }
 
-export function createBlankMetaAdsetData(adsetName: string): MetaAdsetData {
+export function createBlankMetaAdsetData(adsetName: string, date? : Date): MetaAdsetData {
   return {
-    date: new Date(),
+    date: date ? new Date(date) : new Date(),
     adsetName,
     reach: 0,
     amountSpent: 0,

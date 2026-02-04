@@ -6,14 +6,19 @@ import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 
 export const MonthComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  const data = useAnalytics();
-  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName || "")));
+  let data = useAnalytics().metaData;
+
+  //Filter out organic leads
+  data = data.filter(item => item.adsetName !== "Organic");
+
+  let adsetNames = Array.from(new Set(data.map(item => item.adsetName || "")));
   adsetNames.unshift("All");
 
-
   let filter = selectedAdset && selectedAdset != 'All' ?
-    data.metaData.filter(item => item.adsetName === selectedAdset) : data.metaData;
-
+    data.filter(item => item.adsetName === selectedAdset) : data;
+  if (selectedAdset == 'All') {
+    data.filter(item => item.adsetName !== 'Organic')
+  }
   let previousMonth = new Date().getMonth() - 1;
   if (previousMonth < 0) {
     previousMonth = 11;
@@ -23,6 +28,8 @@ export const MonthComparisonTab = () => {
 
   const currentMonthData = filter.filter(item => item.date.getMonth() === new Date().getMonth());
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
+
+
 
   return (
     <Stack gap="xl">

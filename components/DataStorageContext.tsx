@@ -24,6 +24,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   // Revive dates from JSON
   const reviveMetaData = useCallback((data: any[]): MetaAdsetData[] => {
+    if(!data) {
+      const a : MetaAdsetData[] = []
+      return a;
+    }
     return data.map(item => ({
       ...item,
       date: new Date(item.date),

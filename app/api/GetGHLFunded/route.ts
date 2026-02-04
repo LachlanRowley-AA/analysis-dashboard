@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   let startDateParam = APIurl.searchParams.get("date") ?? "";
   if (startDateParam) {
     const splitDate = startDateParam.split('-');
-    startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
+    startDateParam = `${splitDate[0]}-${splitDate[1]}-${splitDate[2]}`
   }
   try {
     const query = new URLSearchParams({

@@ -4,6 +4,7 @@ import { useAnalytics } from "../DataStorageContext"
 import { GHL_PIPELINE_IDS } from "@/lib/constants/ghl"
 import { GHLMetricsGrid } from "../GHLMetricsGrid"
 import { Stepper, Container, Text } from '@mantine/core'
+import { GHLEVGrid } from "../GHLEVGrid"
 
 export const GHLTab = () => {
     const { ghlData } = useAnalytics();
@@ -26,6 +27,7 @@ export const GHLTab = () => {
                 <Stepper.Step label="Supporting Docs Requested"/>
             </Stepper>
             <GHLMetricsGrid data={filteredData} comparison={comparisonData} showComparison={true} />
+            <GHLEVGrid data={ghlData}/>
         </Container>
     )
 }

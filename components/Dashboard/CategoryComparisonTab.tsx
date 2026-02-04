@@ -8,8 +8,6 @@ import { metaAdsetGrouping } from '@/lib/constants/analytics';
 
 export const CategoryComparisonTab = () => {
   const data = useAnalytics();
-  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName)));
-  adsetNames.unshift("All");
 
   let copy = [...data.metaData];
   let atoData: MetaAdsetData[] = [];

@@ -21,14 +21,16 @@ export async function cacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]
     await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
 }
 
-export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]): Promise<void> {
+export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[], startDate : Date): Promise<void> {
     //Remove the elements from the same day --> can't filter meta
-    const now = new Date();
 
-    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    console.log("update received: ", data, fullData)
+
+
+    const todayMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
     await redis.zremrangebyscore(`metaAdsetData`, convertToUnix(todayMidnight), 'inf');
 
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     await redis.zremrangebyscore('fullMetaAdsetData', convertToUnix(startOfMonth), 'inf')
     await redis.zremrangebyscore('testData', convertToUnix(startOfMonth), 'inf')
 
@@ -40,7 +42,7 @@ export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdset
         await redis.zadd('fullMetaAdsetData', convertToUnix(item.date), JSON.stringify(item));
         await redis.zadd('testData', convertToUnix(item.date), JSON.stringify(item))
     }
-    // await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
+    await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
 
     return;
 }
