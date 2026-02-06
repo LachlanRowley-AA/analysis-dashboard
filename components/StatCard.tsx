@@ -55,8 +55,8 @@ export const StatCard: React.FC<StatCardProps> = ({
         cursor: 'pointer',
         borderColor: isHovered || active ? color : '#4A4A4A',
       }}
-      bg={active ? rgba(color, 0.18) : '#10151B'} //3d3b3b
-    >
+      bg={active ? rgba(color, 0.18) : '#1C262D'} //3d3b3b
+    > 
       <Group justify="space-between" mb="md" wrap="nowrap">
         {/* <div
           style={{
