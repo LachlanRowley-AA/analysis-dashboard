@@ -1,7 +1,7 @@
 import { getCachedData, cacheData, getFullCachedData, getDateCached, getCachedGHLData, cacheGHLData, getDateCachedUnix } from "@/lib/cache/redisManager";
 import { AnalyticsApiService } from "@/lib/services/api";
-import { ATO_TO_GHL_MAPPING } from "@/lib/constants/analytics";
-import { createBlankMetaAdsetData } from "@/types/analytics";
+import { ATO_TO_GHL_MAPPING, GHL_TO_ATO_MAPPING } from "@/lib/constants/analytics";
+import { createBlankMetaAdsetData, MetaAdsetData } from "@/types/analytics";
 import { ghlStageFormatter } from "@/lib/formatter";
 import { GHLData } from "@/types/analytics";
 
@@ -12,17 +12,17 @@ const dayKey = (date: Date) =>
 const monthKey = (date: Date) =>
     `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
 
-function mergeGHLIntoDailyMeta(metaData: any[], ghlFunded: GHLData[]) {
+function mergeGHLIntoDailyMeta(metaData: MetaAdsetData[], ghlFunded: GHLData[]) {
     const metaMap = new Map<string, any>();
 
     for (const metaItem of metaData) {
-        const key = `${dayKey(metaItem.date)}_${ATO_TO_GHL_MAPPING[metaItem.adsetName]}`;
+        const key = `${dayKey(metaItem.date)}_${metaItem.adsetName}`;
         metaMap.set(key, metaItem);
     }
 
     for (const ghlItem of ghlFunded) {
         const date = ghlItem.dateFunded ? new Date(ghlItem.dateFunded) : new Date(ghlItem.dateCreated);
-        const key = `${dayKey(date)}_${ghlItem.adset}`;
+        const key = `${dayKey(date)}_${GHL_TO_ATO_MAPPING[ghlItem.adset]}`;
         const metaItem = metaMap.get(key);
 
         if (metaItem) {
@@ -31,7 +31,7 @@ function mergeGHLIntoDailyMeta(metaData: any[], ghlFunded: GHLData[]) {
                 metaItem.conversionValue += ghlItem.value;
             }
         } else {
-            const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
+            const newMetaItem = createBlankMetaAdsetData(GHL_TO_ATO_MAPPING[ghlItem.adset]);
             newMetaItem.date = date;
             if (ghlItem.value > 0) {
                 newMetaItem.conversions = 1;
@@ -47,7 +47,7 @@ function mergeGHLIntoMonthlyMeta(metaData: any[], ghlFunded: GHLData[]) {
     const metaMap = new Map<string, any>();
 
     for (const metaItem of metaData) {
-        const key = `${monthKey(metaItem.date)}_${ATO_TO_GHL_MAPPING[metaItem.adsetName]}`;
+        const key = `${monthKey(metaItem.date)}_${metaItem.adsetName}`;
         metaMap.set(key, metaItem);
     }
 
@@ -56,14 +56,14 @@ function mergeGHLIntoMonthlyMeta(metaData: any[], ghlFunded: GHLData[]) {
             continue
         }
         const date = new Date(ghlItem.dateFunded);
-        const key = `${monthKey(date)}_${ghlItem.adset}`;
+        const key = `${monthKey(date)}_${GHL_TO_ATO_MAPPING[ghlItem.adset]}`;
         const metaItem = metaMap.get(key);
 
         if (metaItem) {
             metaItem.conversions += 1;
             metaItem.conversionValue += ghlItem.value;
         } else {
-            const newMetaItem = createBlankMetaAdsetData(ghlItem.adset);
+            const newMetaItem = createBlankMetaAdsetData(GHL_TO_ATO_MAPPING[ghlItem.adset]);
 
             // snap to month bucket
             newMetaItem.date = new Date(
@@ -71,8 +71,6 @@ function mergeGHLIntoMonthlyMeta(metaData: any[], ghlFunded: GHLData[]) {
                 date.getUTCMonth(),
                 1
             );
-
-            console.log("New meta item created", newMetaItem)
             
             newMetaItem.conversions = 1;
             newMetaItem.conversionValue = ghlItem.value;
@@ -89,7 +87,6 @@ export async function GET() {
         ghlData = await AnalyticsApiService.fetchGHLData()
         cacheGHLData(ghlData);
     }
-    const ghlFunded = await AnalyticsApiService.fetchGHLFunded();
     const cached = await getCachedData();
     const fullCachedData = await getFullCachedData();
 

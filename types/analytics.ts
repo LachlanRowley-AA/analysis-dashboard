@@ -1,3 +1,5 @@
+import { ValueFormat } from "@/lib/formatter";
+
 export interface StatCardProps {
   icon: React.ReactNode;
   title: string;
@@ -9,6 +11,12 @@ export interface StatCardProps {
   neutral?: boolean;
   onClick?: () => void,
   active?: boolean;
+  sameDayChange?: {
+    absolute?: number;
+    percent?: number;
+  }
+  format?: ValueFormat;
+
 }
 
 export interface MetaAdsetData {
@@ -28,7 +36,7 @@ export interface MetaAdsetData {
   cpm: number;
 }
 
-export function createBlankMetaAdsetData(adsetName: string, date? : Date): MetaAdsetData {
+export function createBlankMetaAdsetData(adsetName: string, date?: Date): MetaAdsetData {
   return {
     date: date ? new Date(date) : new Date(),
     adsetName,

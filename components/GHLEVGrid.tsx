@@ -365,7 +365,7 @@ export const GHLEVGrid: React.FC<GHLEVGridProps> = ({
       {/* Header with controls */}
       <Paper 
         p="lg" 
-        radius="lg" 
+        radius="lg"   
         withBorder
         style={{
           background: 'linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%)',

@@ -56,7 +56,6 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     const json = await res.json();
     const revivedMeta = reviveMetaData(json.fetchedMetaData);
 
-    console.log("Update func called")
 
     setCachedDate(json.cachedDate || "");
 

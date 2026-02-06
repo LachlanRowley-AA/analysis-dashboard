@@ -16,9 +16,6 @@ export const MonthComparisonTab = () => {
 
   let filter = selectedAdset && selectedAdset != 'All' ?
     data.filter(item => item.adsetName === selectedAdset) : data;
-  if (selectedAdset == 'All') {
-    data.filter(item => item.adsetName !== 'Organic')
-  }
   let previousMonth = new Date().getMonth() - 1;
   if (previousMonth < 0) {
     previousMonth = 11;
@@ -34,12 +31,19 @@ export const MonthComparisonTab = () => {
   return (
     <Stack gap="xl">
       <div>
-        <Title order={2} mb="md">This Month</Title>
+        <Title order={2} mb="md" c='white'>This Month</Title>
         <Select
           data={adsetNames.map(name => ({ value: name, label: name })) || ""}
           value={selectedAdset}
           onChange={setSelectedAdset}
           py='md'
+          styles={{
+            input: {
+              color: 'white',
+              backgroundColor: '#080b0e',
+              borderColor: '#6FC3DF'
+            },
+          }}
         />
         <MetricsGrid data={monthData} comparison={lastMonthData} dataArr={currentMonthData} comparisonArr={previousMonthData} />
         {/* <LTVGrid data={currentMonthData} comparison={previousMonthData} showComparison={true} /> */}

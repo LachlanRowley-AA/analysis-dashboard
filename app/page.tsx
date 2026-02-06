@@ -38,7 +38,7 @@ export default function Dashboard() {
   return (
     <Container size="xl" py="xl">
       <Group justify="space-between" mb="xl">
-        <Title order={1}>Analytics Dashboard</Title>
+        <Title order={1} c='white'>Analytics Dashboard</Title>
         <Stack>
           <Popover opened={opened}>
             <Popover.Target>
@@ -61,12 +61,12 @@ export default function Dashboard() {
               <Text fz='sm'>Updates for today may not show up until 11am</Text>
             </Popover.Dropdown>
           </Popover>
-          <Text>Last updated {text}</Text>
+          <Text c='white'>Last updated {text}</Text>
         </Stack>
       </Group>
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List mb="xl">
+      <Tabs value={activeTab} onChange={setActiveTab} c='#cf0072'>
+        <Tabs.List mb="xl" c='#01E194'>
           <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
           <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
           <Tabs.Tab value="total">Total</Tabs.Tab>

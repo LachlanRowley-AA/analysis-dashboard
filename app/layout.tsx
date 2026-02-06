@@ -35,11 +35,11 @@
         <head>
           <ColorSchemeScript />
         </head>
-        <body style={{backgroundColor: '#f2fafa'}}>
+        <body style={{backgroundColor: '#080B0E'}}> 
           <AnalyticsProvider>
             <MantineProvider>{children}</MantineProvider>
           </AnalyticsProvider>
         </body>
       </html>
     );
-  }
+  } //121212

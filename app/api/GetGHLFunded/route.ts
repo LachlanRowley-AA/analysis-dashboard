@@ -50,9 +50,10 @@ export async function GET(req: Request) {
       const row: Record<string, any> = {
         opportunity_name: opp.name,
         value: opp.monetaryValue,
-        created_at: opp.createdAt,
-        stage_id: opp.pipelineStageId,
+        stageId: opp.pipelineStageId,
         funded: opp.lastStageChangeAt,
+        dateCreated: opp.createdAt,
+        owner: opp.assignedTo
       }
 
       const customLookup: Record<string, any> = {}

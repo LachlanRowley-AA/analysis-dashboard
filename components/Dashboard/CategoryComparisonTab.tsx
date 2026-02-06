@@ -39,7 +39,7 @@ export const CategoryComparisonTab = () => {
   return (
     <Stack gap="xl">
       <div>
-        <Title order={2} mb="md">ATO</Title>
+        <Title order={2} mb="md" c='white'>ATO</Title>
         <MetricsGrid data={ATOMonthData} comparison={ATOLastMonthData} dataArr={ATOCurrentMonthData} comparisonArr={ATOPreviousMonthData} />
         <LTVGrid data={ATOCurrentMonthData} comparison={ATOPreviousMonthData} showComparison={true} />
         <Title order={2} mb="md">Machinery</Title>

@@ -1,10 +1,13 @@
-import { Paper, Text, Group, Badge } from '@mantine/core';
+import { Paper, Text, Group, Badge, rgba, Stack } from '@mantine/core';
 import { useState } from 'react';
 import { StatCardProps } from '@/types/analytics';
 import {
   IconArrowBigUpFilled,
-  IconArrowBigDownFilled
+  IconArrowBigDownFilled,
+  IconChartAreaLineFilled,
+  IconEqual
 } from '@tabler/icons-react';
+import { formatValue } from '@/lib/formatter';
 
 export const StatCard: React.FC<StatCardProps> = ({
   icon,
@@ -16,13 +19,26 @@ export const StatCard: React.FC<StatCardProps> = ({
   lowerBetter,
   neutral,
   onClick,
-  active
+  active,
+  sameDayChange,
+  format
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const isPositive = change?.startsWith('+');
   const changeValue = change?.replace(/[+-]/, '');
 
+  const formatProp = format ?? 'number';
+
+  const formattedSameDay =
+    sameDayChange?.absolute !== undefined
+      ? formatValue(sameDayChange.absolute, formatProp)
+      : undefined;
+
+
+  if (!!onClick) {
+    console.log(`${title} has onclick`)
+  }
 
   return (
     <Paper
@@ -37,12 +53,12 @@ export const StatCard: React.FC<StatCardProps> = ({
         transition: 'all 0.3s ease',
         transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
         cursor: 'pointer',
-        borderColor: isHovered || active ? color : undefined,
+        borderColor: isHovered || active ? color : '#4A4A4A',
       }}
-      // bg={neutral ? 'white' : (isPositive || lowerBetter ? '#bbffdd44' : '#ff9a9a44')}
+      bg={active ? rgba(color, 0.18) : '#10151B'} //3d3b3b
     >
       <Group justify="space-between" mb="md" wrap="nowrap">
-        <div
+        {/* <div
           style={{
             background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
             padding: '12px',
@@ -51,34 +67,47 @@ export const StatCard: React.FC<StatCardProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: `0 4px 12px ${color}40`,
+            // boxShadow: `0 4px 12px ${color}30`,
             transition: 'transform 0.3s ease',
             transform: isHovered ? 'scale(1.05)' : 'scale(1)',
           }}
         >
           {icon}
-        </div>
-        {change && (
-          <div>
-            {/* {isPositive ? (
-              <IconArrowBigUpFilled size={24} color="teal" />
-            ) : (
-              <IconArrowBigDownFilled size={24} color="red" />
-            )} */}
+        </div> */}
+          {change && (
+            <div>
+              <Badge
+                color={neutral ? 'blue' : ((isPositive && !lowerBetter) || (!isPositive && lowerBetter) ? 'teal' : 'red')}
+                leftSection={isPositive ? <IconArrowBigUpFilled size={16} /> : <IconArrowBigDownFilled size={16} />}
+                variant="light"
+                size="lg"
+              >
+                {changeValue}{' '}(M)
+              </Badge>
+            </div>
+          )}
+          {sameDayChange?.absolute !== undefined && (
             <Badge
-              color={neutral ? 'blue' : ((isPositive && !lowerBetter) || (!isPositive && lowerBetter) ? 'teal' : 'red')}
-              leftSection={isPositive ? <IconArrowBigUpFilled size={16} /> : <IconArrowBigDownFilled size={16} />}
+              color={neutral || sameDayChange.absolute === 0
+                ? 'blue'
+                : ((sameDayChange.absolute > 0 && !lowerBetter) ||
+                  (sameDayChange.absolute < 0 && lowerBetter))
+                  ? 'teal'
+                  : 'red'}
+              leftSection={
+                sameDayChange.absolute > 0 ?
+                  <IconArrowBigUpFilled size={16} /> :
+                  sameDayChange.absolute == 0
+                    ? <IconEqual size={16} />
+                    : <IconArrowBigDownFilled size={16} />
+
+              }
               variant="light"
               size="lg"
-              style={{
-                fontWeight: 600,
-                padding: '8px 12px',
-              }}
             >
-              {change}
+              {formattedSameDay} (D)
             </Badge>
-          </div>
-        )}
+          )}
       </Group>
 
       <Text
@@ -89,6 +118,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           letterSpacing: '0.5px',
           marginBottom: '8px',
         }}
+        c='#a1a1a1'
       >
         {title}
       </Text>
@@ -104,6 +134,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             WebkitTextFillColor: isHovered ? 'transparent' : 'inherit',
             transition: 'all 0.3s ease',
           }}
+          c='white'
         >
           {value}
         </Text>
@@ -119,21 +150,16 @@ export const StatCard: React.FC<StatCardProps> = ({
             WebkitTextFillColor: isHovered ? 'transparent' : 'inherit',
             transition: 'all 0.3s ease',
           }}
+          c='#bbbbbb'
         >
           from {priorValue ? priorValue : ''}
         </Text>
       )}
 
-      {change && (
-        <Group gap={4} mt="xs">
-          <Text
-            size="xs"
-            style={{ opacity: 0.8 }}
-          >
-            {isPositive ? '↑' : '↓'} {changeValue} change
-          </Text>
-        </Group>
-      )}
+      <Group justify='right'>
+        {!!onClick && <IconChartAreaLineFilled size={28} color='#01E194'/>}
+
+      </Group>
     </Paper>
   );
 };

@@ -95,7 +95,7 @@ export function RunRateChart({ analytics, comparisonData, metric }: RunRateChart
         <AreaChart
             h={300}
             data={graphData}
-            series={[{ name: 'value', color: 'blue' }, { name: 'comparison', color: 'gray' }]}
+            series={[{ name: 'value', color: '#01E194' }, { name: 'comparison', color: 'gray' }]}
             dataKey='day'
             withPointLabels={false}
             connectNulls={false}

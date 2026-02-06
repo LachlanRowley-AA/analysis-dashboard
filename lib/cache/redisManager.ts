@@ -21,10 +21,8 @@ export async function cacheData(data: MetaAdsetData[], fullData: MetaAdsetData[]
     await redis.set('metaAdsetDataTimestamp', new Date().toISOString());
 }
 
-export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[], startDate : Date): Promise<void> {
+export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[], startDate: Date): Promise<void> {
     //Remove the elements from the same day --> can't filter meta
-
-    console.log("update received: ", data, fullData)
 
 
     const todayMidnight = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
@@ -76,11 +74,20 @@ export async function getDateCachedUnix(): Promise<number> {
 export async function cacheGHLData(data: GHLData[]): Promise<void> {
     await redis.del('ghlData');
     for (const item of data) {
-        await redis.rpush('ghlData', JSON.stringify(item));
+        await redis.zadd('ghlData', convertToUnix(new Date(item.dateCreated)), JSON.stringify(item));
     }
 }
+
+export async function updateGHLCache(data: GHLData[]): Promise<void> {
+    for (const item of data) {
+        console.log("unix date: ", convertToUnix(new Date(item.dateCreated)))
+        console.log("date created", item.dateCreated);
+        await redis.zadd('ghlData', convertToUnix(new Date(item.dateCreated)), JSON.stringify(item));
+    }
+}
+
 export async function getCachedGHLData(): Promise<GHLData[]> {
-    const data = await redis.lrange('ghlData', 0, -1);
+    const data = await redis.zrange('ghlData', 0, -1);
     const mappedData = data.map(item => JSON.parse(item) as GHLData);
     return mappedData;
 }

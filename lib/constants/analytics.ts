@@ -5,6 +5,7 @@ export const GHL_TO_ATO_MAPPING: Record<string, string> = {
   "Machinery A+": "Advantage plus - Machinery & trucks",
   "Machinery Custom Audience": "Machinery & Trucks Custom Audience",
   "Abbie": "Advantage plus - Ads with Abbie",
+  "Organic" : "Organic"
 };
 
 export const ATO_TO_GHL_MAPPING: Record<string, string> = {
@@ -14,6 +15,7 @@ export const ATO_TO_GHL_MAPPING: Record<string, string> = {
   "Advantage plus - Machinery & trucks": "Machinery A+",
   "Machinery & Trucks Custom Audience": "Machinery Custom Audience",
   "Advantage plus - Ads with Abbie": "Abbie",
+  "Organic" : "Organic"
 };
 
 

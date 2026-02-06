@@ -10,15 +10,19 @@ export const ProjectionTab = () => {
   const [changeInAdSpent, setChangeInAdSpend] = useState<number | string>(0);
   const [performanceDegradation, setPerformanceDegradation] = useState<number | string>(0);
   const [lookingAt, setLookingAt] = useState(true);
-  const data = useAnalytics();
+  let data = useAnalytics().metaData;
 
   // --- Adset filter setup ---
-  let adsetNames = Array.from(new Set(data.metaData.map(item => item.adsetName || "")));
+  let adsetNames = Array.from(new Set(data.map(item => item.adsetName || "")));
   adsetNames.unshift("All");
 
+
+  //Remove organic leads from projection
+  data = data.filter(item => item.adsetName !== 'Organic');
+
   const filter = selectedAdset && selectedAdset !== 'All'
-    ? data.metaData.filter(item => item.adsetName === selectedAdset)
-    : data.metaData;
+    ? data.filter(item => item.adsetName === selectedAdset)
+    : data;
 
   // Previous month for comparison
   let previousMonth = new Date().getMonth() - 1;
@@ -132,13 +136,21 @@ export const ProjectionTab = () => {
   return (
     <Stack gap="xl">
       <div>
-        <Title order={2} mb="md">This Month</Title>
+        <Title order={2} mb="md" c='white'>This Month</Title>
 
         <Select
           data={adsetNames.map(name => ({ value: name, label: name })) || []}
           value={selectedAdset}
           onChange={setSelectedAdset}
           py="md"
+          styles={{
+            input: {
+              color: 'white',
+              backgroundColor: 'gray',
+              borderColor: 'gray'
+            }
+          }}
+
         />
 
         <Group>
