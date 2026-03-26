@@ -5,12 +5,9 @@ import { MetaAdsetData } from '../../types/analytics';
 import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 import { LTVGrid } from '../LTV';
 import { metaAdsetGrouping } from '@/lib/constants/analytics';
-import { getSydneyDateParts } from '@/lib/utils/aedt';
 
 export const CategoryComparisonTab = () => {
   const data = useAnalytics();
-  const { month: sydneyMonth } = getSydneyDateParts(new Date());
-  const previousMonth = sydneyMonth === 0 ? 11 : sydneyMonth - 1;
 
   let copy = [...data.metaData];
   let atoData: MetaAdsetData[] = [];
@@ -24,13 +21,18 @@ export const CategoryComparisonTab = () => {
     }
   });
 
-  const ATOPreviousMonthData = atoData.filter(item => getSydneyDateParts(item.date).month === previousMonth);
-  const machineryPreviousMonthData = machineryData.filter(item => getSydneyDateParts(item.date).month === previousMonth);
+  let previousMonth = new Date().getMonth() - 1;
+  if (previousMonth < 0) {
+    previousMonth = 11;
+  }
+  
+  const ATOPreviousMonthData = atoData.filter(item => item.date.getMonth() === previousMonth);
+  const machineryPreviousMonthData = machineryData.filter(item => item.date.getMonth() === previousMonth);
   const ATOLastMonthData = mergeAdsetData(ATOPreviousMonthData, 'Last Month');
   const machineryLastMonthData = mergeAdsetData(machineryPreviousMonthData, 'Last Month');
 
-  const ATOCurrentMonthData = atoData.filter(item => getSydneyDateParts(item.date).month === sydneyMonth);
-  const machineryCurrentMonthData = machineryData.filter(item => getSydneyDateParts(item.date).month === sydneyMonth);
+  const ATOCurrentMonthData = atoData.filter(item => item.date.getMonth() === new Date().getMonth());
+  const machineryCurrentMonthData = machineryData.filter(item => item.date.getMonth() === new Date().getMonth());
   const ATOMonthData = mergeAdsetData(ATOCurrentMonthData, 'Current Month');
   const machineryMonthData = mergeAdsetData(machineryCurrentMonthData, 'Current Month');
 

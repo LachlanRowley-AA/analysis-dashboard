@@ -5,7 +5,12 @@ export const GHL_TO_ATO_MAPPING: Record<string, string> = {
   "Machinery A+": "Advantage plus - Machinery & trucks",
   "Machinery Custom Audience": "Machinery & Trucks Custom Audience",
   "Abbie": "Advantage plus - Ads with Abbie",
-  "Organic" : "Organic"
+  "Organic" : "Organic",
+  "ATO" : "ATO",
+  "Machinery": "Machinery",
+  "Repeat": "Repeat",
+  "Transport": "Transport Related",
+  "Construction": "Construction Related"
 };
 
 export const ATO_TO_GHL_MAPPING: Record<string, string> = {
@@ -15,7 +20,12 @@ export const ATO_TO_GHL_MAPPING: Record<string, string> = {
   "Advantage plus - Machinery & trucks": "Machinery A+",
   "Machinery & Trucks Custom Audience": "Machinery Custom Audience",
   "Advantage plus - Ads with Abbie": "Abbie",
-  "Organic" : "Organic"
+  "Organic" : "Organic",
+  "ATO" : "ATO",
+  "Machinery": "Machinery",
+  "Repeat": "Repeat",
+  "Transport Related": "Transport",
+  "Construction Related": "Con"
 };
 
 
@@ -27,7 +37,9 @@ export const ghlAdsetGrouping: { [key: string]: string } = {
     "Abbie": "Machinery",
     "Machinery Custom Audience": "Machinery",
     "Machinery A+": "Machinery",
-    "Machinery": "Machinery"
+    "Machinery": "Machinery",
+    "Construction" : "ATO",
+    "Transport" : "ATO"
 }
 
 export const metaAdsetGrouping: Record<string, string> = {
@@ -38,6 +50,8 @@ export const metaAdsetGrouping: Record<string, string> = {
     "Advantage plus - Ads with Abbie": "Machinery",
     "Machinery & Trucks Custom Audience": "Machinery",
     "Advantage plus - Machinery & trucks": "Machinery",
+    "Construction Related": "ATO",
+    "Transport Related": "ATO",
   };
 
   export const LTV_VALUES: Record<string, number> = {

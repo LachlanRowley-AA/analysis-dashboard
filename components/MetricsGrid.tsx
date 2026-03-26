@@ -18,6 +18,8 @@ import { RunRateChart } from './RunRateChart';
 import { useAnalytics } from './DataStorageContext';
 import { LTVCost } from './LTVCtAC';
 import { Fragment } from 'react';
+import { calcDeltaEfficiency } from './Delta';
+import { getSydneyDateParts } from '@/lib/utils/aedt';
 
 interface MetricsGridProps {
   data: MetaAdsetData;
@@ -41,6 +43,24 @@ type MetricKey = keyof Pick<
   | 'cpm'
 >;
 
+function getSameDayValue(
+  dataArr: MetaAdsetData[] | undefined,
+  metric: MetricKey,
+  dayOfMonth: number
+): number | undefined {
+  if (!dataArr || dataArr.length === 0) return;
+
+  console.log("Getting same day value for metric: ", metric, " on day: ", dayOfMonth);
+
+  const cumulative = dataArr
+    .filter(d => getSydneyDateParts(d.date).date <= dayOfMonth)
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .reduce((sum, d) => sum + Number(d[metric] ?? 0), 0);
+
+  return cumulative;
+}
+
+
 function getSameDayChange(
   currentArr: MetaAdsetData[] | undefined,
   comparisonArr: MetaAdsetData[] | undefined,
@@ -48,19 +68,19 @@ function getSameDayChange(
 ): { absolute?: number; percent?: number } {
   if (!currentArr || !comparisonArr) return {};
 
-  const today = new Date();
-  const dayOfMonth = today.getDate();
+  let dayInArr = currentArr[currentArr.length - 1]
+  console.log("Current array last day: ", dayInArr?.date);
+  console.log("Array: ", currentArr);
+  if (!dayInArr) return {};
+  let dayOfMonth = getSydneyDateParts(dayInArr.date).date;
 
-  const cumulative = (data: MetaAdsetData[]) => {
-    return data
-      .filter(d => d.date.getDate() <= dayOfMonth)
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .reduce((sum, d) => sum + Number(d[metric] ?? 0), 0);
-  };
 
-  const currentValue = cumulative(currentArr);
-  const comparisonValue = cumulative(comparisonArr);
+  const currentValue = getSameDayValue(currentArr, metric, dayOfMonth) ?? 0;
+  const comparisonValue = getSameDayValue(comparisonArr, metric, dayOfMonth) ?? 0;
 
+  if (metric === 'amountSpent') {
+    console.log("Current value for metric ", metric, ": ", currentValue, "Comparison value: ", comparisonValue, " on day: ", dayOfMonth);
+  }
   if (!comparisonValue) return {};
 
   return {
@@ -75,6 +95,9 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
   const [showMetric, setShowMetricState] = useState<MetricKey | ''>('');
   const [graphIndex, setGraphIndex] = useState<number>(-1);
   const fullData: MetaAdsetData[] = useAnalytics().metaData;
+  if (!dataArr || dataArr.length === 0) {
+    return <div>Loading...</div>;
+  }
 
   function setShowMetric(val: MetricKey) {
     if (showMetric === val) {
@@ -84,7 +107,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
   }
 
   const calculateChange = (current: number, previous?: number, isCurrency: boolean = false): string | undefined => {
-    console.log("previous = ", previous);
+    // console.log("previous = ", previous);
     if (!previous || !current || previous == undefined) return;
     if (showAbsolute) {
       const absoluteChange = current - previous;
@@ -109,6 +132,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
     md: 4,
     lg: 3,
   })
+
 
   const StatCards = [
     <StatCard
@@ -221,7 +245,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
     <LTVGrid
       key={'ltv'}
       data={dataArr ? dataArr : fullData}
-      comparison={comparisonArr ?? fullData}
+      comparison={comparisonArr ?? undefined}
       showComparison={true}
     />,
     <LTVCost
@@ -245,7 +269,47 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data, comparison, show
       sameDayChange={getSameDayChange(dataArr, comparisonArr, 'conversions')}
       format='number'
     />,
-
+    <StatCard
+      key={'delta'}
+      icon={<IconUsers size={28} />}
+      title="Adspend Change Efficiency"
+      value={
+          `${calcDeltaEfficiency(
+            getSameDayValue(dataArr, 'lead', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+            getSameDayValue(dataArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+            getSameDayValue(comparisonArr, 'lead', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+            getSameDayValue(comparisonArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0)}%`
+        }
+      color="#20c997"
+      format='percent'
+      priorTextStart='of the expected leads from'
+      priorValue={`$${((getSameDayChange(dataArr, comparisonArr, 'amountSpent').absolute ?? 0) / (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date : 1)).toFixed(2)}/day change
+        `}
+    />,
+    <StatCard
+      key={'projectedRoas'}
+      icon={<IconChartLine size={28} />}
+      title="Adspend Change Projected ROAS"
+      value={comparison ?
+        (
+          Math.abs((getSameDayValue(dataArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0)
+            - (getSameDayValue(comparisonArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0))
+            / ((getSameDayValue(comparisonArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0) || 1)
+            > 0.05 * 100 ?
+            Math.max(data.conversionValue / data.amountSpent)
+            :
+            Math.max((data.conversionValue / data.amountSpent) *
+              (calcDeltaEfficiency(
+                getSameDayValue(dataArr, 'lead', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+                getSameDayValue(dataArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+                getSameDayValue(comparisonArr, 'lead', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0,
+                getSameDayValue(comparisonArr, 'amountSpent', (dataArr ? getSydneyDateParts(dataArr[dataArr.length - 1].date).date - 1 : 0)) ?? 0
+              ) / 100), 0)
+        ).toFixed(2) : "N/A"
+      }
+      color="#20c997"
+      format='number'
+    />
   ];
   const CARDS_PER_ROW = 12 / colSpan;
 

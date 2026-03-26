@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { GHLData, MetaAdsetData } from "@/types/analytics";
+import { formatDateInAEDT } from "@/lib/utils/aedt";
 
 type AnalyticsContextType = {
   metaData: MetaAdsetData[];
@@ -48,40 +49,44 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, [reviveMetaData]);
 
-  // Update cache and merge with current metaData
+  // Update cache and merge with current metaData (key = date+adset in AEDT)
   const updateMetaData = useCallback(async () => {
     setReady(false);
+    try {
+      const res = await fetch("/api/UpdateCache");
+      if (!res.ok) {
+        throw new Error(`UpdateCache failed: ${res.status}`);
+      }
+      const json = await res.json();
+      const dailyMeta = json.dailyMetaData ?? json.fetchedMetaData ?? [];
+      const revivedMeta = reviveMetaData(dailyMeta);
 
-    const res = await fetch('/api/UpdateCache');
-    const json = await res.json();
-    const revivedMeta = reviveMetaData(json.fetchedMetaData);
+      setCachedDate(json.cachedDate ?? "");
 
-
-    setCachedDate(json.cachedDate || "");
-
-    // Merge new data with existing data, avoiding duplicates by date+adset
-    setMetaData(prev => {
-      const map = new Map(prev.map(item => [`${item.date.toDateString()}_${item.adsetName}`, { ...item }]));
-
-      for (const item of revivedMeta) {
-        const key = `${item.date.toDateString()}_${item.adsetName}`;
-        if (map.has(key)) {
-          const existing = map.get(key)!;
-          map.set(key, {
-            ...existing,
-            conversions: item.conversions,
-            conversionValue: item.conversionValue
-          });
-        } else {
-          map.set(key, { ...item });
-        }
+      if (json.fullMetaData?.length) {
+        setFullData(reviveMetaData(json.fullMetaData));
+      }
+      if (json.allGhlData?.length) {
+        setGhlData(json.allGhlData);
       }
 
-      return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
-    });
+      setMetaData((prev) => {
+        const keyOf = (item: MetaAdsetData) =>
+          `${formatDateInAEDT(item.date)}_${item.adsetName}`;
+        const map = new Map(prev.map((item) => [keyOf(item), { ...item }]));
 
+        for (const item of revivedMeta) {
+          const key = keyOf(item);
+          map.set(key, { ...item });
+        }
 
-    setReady(true);
+        return Array.from(map.values()).sort(
+          (a, b) => a.date.getTime() - b.date.getTime()
+        );
+      });
+    } finally {
+      setReady(true);
+    }
   }, [reviveMetaData]);
 
   useEffect(() => {

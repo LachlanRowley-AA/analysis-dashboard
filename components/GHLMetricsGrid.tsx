@@ -216,55 +216,57 @@ export const GHLMetricsGrid: React.FC<GHLMetricsGridProps> = ({
   ));
 
 
-  const currentPipelineData = buildPipelineSplit(data);
-  const comparisonPipelineData = comparison
-    ? buildPipelineSplit(comparison)
-    : null;
 
-  return (
-    <>
-      {showComparison && (
-        <Group justify="flex-end" mb="md">
-          <Group gap="xs">
-            <Text size="sm" c="dimmed">
-              Percentage
-            </Text>
-            <Switch
-              checked={showAbsolute}
-              onChange={event =>
-                setShowAbsolute(event.currentTarget.checked)
-              }
-              size="md"
-            />
-            <Text size="sm" c="dimmed">
-              Numeric
-            </Text>
-          </Group>
+
+const currentPipelineData = buildPipelineSplit(data);
+const comparisonPipelineData = comparison
+  ? buildPipelineSplit(comparison)
+  : null;
+
+return (
+  <>
+    {showComparison && (
+      <Group justify="flex-end" mb="md">
+        <Group gap="xs">
+          <Text size="sm" c="dimmed">
+            Percentage
+          </Text>
+          <Switch
+            checked={showAbsolute}
+            onChange={event =>
+              setShowAbsolute(event.currentTarget.checked)
+            }
+            size="md"
+          />
+          <Text size="sm" c="dimmed">
+            Numeric
+          </Text>
         </Group>
-      )}
+      </Group>
+    )}
 
-      <Container p="sm" size="xl">
-        <Grid>{cards}</Grid>
+    <Container p="sm" size="xl">
+      <Grid>{cards}</Grid>
 
-        {/* Pipeline vs Not Pipeline charts */}
-        <Grid mt="lg">
+      {/* Pipeline vs Not Pipeline charts */}
+      <Grid mt="lg">
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <PipelineBarChart
+            title="Current Period"
+            data={currentPipelineData}
+          />
+        </Grid.Col>
+
+        {comparisonPipelineData && (
           <Grid.Col span={{ base: 12, md: 6 }}>
             <PipelineBarChart
-              title="Current Period"
-              data={currentPipelineData}
+              title="Previous Period"
+              data={comparisonPipelineData}
             />
           </Grid.Col>
-
-          {comparisonPipelineData && (
-            <Grid.Col span={{ base: 12, md: 6 }}>
-              <PipelineBarChart
-                title="Previous Period"
-                data={comparisonPipelineData}
-              />
-            </Grid.Col>
-          )}
-        </Grid>
-      </Container>
-    </>
-  );
+        )}
+      </Grid>
+    </Container>
+  </>
+);
 };

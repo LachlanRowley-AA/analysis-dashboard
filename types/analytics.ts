@@ -16,6 +16,7 @@ export interface StatCardProps {
     percent?: number;
   }
   format?: ValueFormat;
+  priorTextStart?: string;
 
 }
 

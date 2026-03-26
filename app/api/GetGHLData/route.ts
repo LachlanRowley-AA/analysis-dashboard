@@ -61,7 +61,7 @@ export async function GET(req: Request) {
 
     const rows = allOpportunities.map((opp: any) => {
       const row: Record<string, any> = {
-        opportunity_name: opp.name,
+        name: opp.name,
         value: opp.monetaryValue,
         stageId: opp.pipelineStageId,
         funded: opp.lastStageChangeAt,

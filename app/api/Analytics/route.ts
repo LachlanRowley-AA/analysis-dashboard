@@ -1,124 +1,56 @@
-import { getCachedData, cacheData, getFullCachedData, getDateCached, getCachedGHLData, cacheGHLData, getDateCachedUnix } from "@/lib/cache/redisManager";
+import { getCachedData, cacheData, getFullCachedData, getDateCached, getCachedGHLData, cacheGHLData } from "@/lib/cache/redisManager";
 import { AnalyticsApiService } from "@/lib/services/api";
-import { ATO_TO_GHL_MAPPING, GHL_TO_ATO_MAPPING } from "@/lib/constants/analytics";
-import { createBlankMetaAdsetData, MetaAdsetData } from "@/types/analytics";
-import { ghlStageFormatter } from "@/lib/formatter";
-import { GHLData } from "@/types/analytics";
-
-
-const dayKey = (date: Date) =>
-    `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
-
-const monthKey = (date: Date) =>
-    `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
-
-function mergeGHLIntoDailyMeta(metaData: MetaAdsetData[], ghlFunded: GHLData[]) {
-    const metaMap = new Map<string, any>();
-
-    for (const metaItem of metaData) {
-        const key = `${dayKey(metaItem.date)}_${metaItem.adsetName}`;
-        metaMap.set(key, metaItem);
-    }
-
-    for (const ghlItem of ghlFunded) {
-        const date = ghlItem.dateFunded ? new Date(ghlItem.dateFunded) : new Date(ghlItem.dateCreated);
-        const key = `${dayKey(date)}_${GHL_TO_ATO_MAPPING[ghlItem.adset]}`;
-        const metaItem = metaMap.get(key);
-
-        if (metaItem) {
-            if (ghlItem.value > 0) {
-                metaItem.conversions += 1;
-                metaItem.conversionValue += ghlItem.value;
-            }
-        } else {
-            const newMetaItem = createBlankMetaAdsetData(GHL_TO_ATO_MAPPING[ghlItem.adset]);
-            newMetaItem.date = date;
-            if (ghlItem.value > 0) {
-                newMetaItem.conversions = 1;
-                newMetaItem.conversionValue = ghlItem.value;
-            }
-            newMetaItem.lead++;
-            metaData.push(newMetaItem);
-        }
-    }
-}
-
-function mergeGHLIntoMonthlyMeta(metaData: any[], ghlFunded: GHLData[]) {
-    const metaMap = new Map<string, any>();
-
-    for (const metaItem of metaData) {
-        const key = `${monthKey(metaItem.date)}_${metaItem.adsetName}`;
-        metaMap.set(key, metaItem);
-    }
-
-    for (const ghlItem of ghlFunded) {
-        if (ghlItem.value <= 0) {
-            continue
-        }
-        const date = new Date(ghlItem.dateFunded);
-        const key = `${monthKey(date)}_${GHL_TO_ATO_MAPPING[ghlItem.adset]}`;
-        const metaItem = metaMap.get(key);
-
-        if (metaItem) {
-            metaItem.conversions += 1;
-            metaItem.conversionValue += ghlItem.value;
-        } else {
-            const newMetaItem = createBlankMetaAdsetData(GHL_TO_ATO_MAPPING[ghlItem.adset]);
-
-            // snap to month bucket
-            newMetaItem.date = new Date(
-                date.getUTCFullYear(),
-                date.getUTCMonth(),
-                1
-            );
-            
-            newMetaItem.conversions = 1;
-            newMetaItem.conversionValue = ghlItem.value;
-            metaData.push(newMetaItem);
-        }
-    }
-}
-
+import { mergeGHLIntoMeta } from "@/lib/utils/analytics-merger";
+import { startOfMonthOffsetInSydney, addDaysInSydney, parseDateOnlyInAEDT } from "@/lib/utils/aedt";
 
 
 export async function GET() {
-    let ghlData = await getCachedGHLData();
-    if (!(ghlData.length > 0)) {
-        ghlData = await AnalyticsApiService.fetchGHLData()
-        cacheGHLData(ghlData);
+    try {
+        let ghlData = await getCachedGHLData();
+        if (!(ghlData.length > 0)) {
+            ghlData = await AnalyticsApiService.fetchGHLData();
+            await cacheGHLData(ghlData);
+        }
+        const cached = await getCachedData();
+        const fullCachedData = await getFullCachedData();
+
+
+        const date = await getDateCached();
+        if (cached.length > 0 && fullCachedData.length > 0) {
+            return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
+        }
+
+        const MONTHS_TO_FETCH = 2;
+        const startDate = startOfMonthOffsetInSydney(-(MONTHS_TO_FETCH - 1));
+        const endDate = addDaysInSydney(new Date(), 1);
+
+        // First date of adset data (Australia/Sydney)
+        const ADSET_START = parseDateOnlyInAEDT("2025-08-08");
+
+        let fetchedMetaData = await AnalyticsApiService.fetchDateData(startDate, endDate, "1");
+        let fullMetaData = await AnalyticsApiService.fetchDateData(ADSET_START, endDate, "31");
+
+        mergeGHLIntoMeta(fetchedMetaData, ghlData, undefined, true, true, false);
+        mergeGHLIntoMeta(fullMetaData, ghlData, undefined, true, false);
+
+
+        const cachedDate = new Date().toISOString();
+        await cacheData(fetchedMetaData, fullMetaData);
+        const payload = {
+            fetchedMetaData,
+            fullMetaData,
+            cachedDate,
+            ghlData
+        };
+        return Response.json(payload);
+    } catch (error) {
+        console.error("Error in /api/Analytics GET handler:", error);
+        return new Response(
+            JSON.stringify({ error: "Internal server error" }),
+            {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+            }
+        );
     }
-    const cached = await getCachedData();
-    const fullCachedData = await getFullCachedData();
-
-
-    const date = await getDateCached();
-    const unixDate = await getDateCachedUnix();
-    if (cached.length > 0 && fullCachedData.length > 0) {
-        return Response.json({ fetchedMetaData: cached, fullMetaData: fullCachedData, cachedDate: date, ghlData, cached: true });
-    }
-
-    const MONTHS_TO_FETCH = 2;
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - (MONTHS_TO_FETCH - 1)); startDate.setDate(1);
-    startDate.setDate(1);
-    const endDate = new Date();
-
-    const ADSET_START = new Date(2025, 7, 8);
-
-    let fetchedMetaData = await AnalyticsApiService.fetchDateData(startDate, endDate, "1");
-    let fullMetaData = await AnalyticsApiService.fetchDateData(ADSET_START, endDate, "31");
-
-    mergeGHLIntoDailyMeta(fetchedMetaData, ghlData);
-    mergeGHLIntoMonthlyMeta(fullMetaData, ghlData);
-
-
-    const cachedDate = new Date().toISOString()
-    await cacheData(fetchedMetaData, fullMetaData);
-    const payload = {
-        fetchedMetaData,
-        fullMetaData,
-        cachedDate,
-        ghlData
-    }
-    return Response.json(payload);
 }

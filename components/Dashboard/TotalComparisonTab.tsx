@@ -26,7 +26,11 @@ export const TotalTab = () => {
   if (selectedAdset == 'All') {
     filter = fullData.filter(item => item.adsetName !== 'Organic')
   }
+  // console.log("~~~~~~~~~~~~~~~~~~~~~")
+  // filter.forEach(item => item.conversionValue > 0 ? console.log(`more than 0 (${item.conversionValue}) ${item.date}, ${item.adsetName}`) : '');
+  // console.log("~~~~~~~~~~~~~~~~~~~~~")
   const merge = mergeAdsetData(filter, 'Total');
+
 
   return (
     <Stack gap="xl">

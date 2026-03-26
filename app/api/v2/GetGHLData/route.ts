@@ -1,3 +1,5 @@
+//Called with ./GetGHLData?startDateParam={YYYY-MM-DD}
+
 import { NextResponse } from 'next/server'
 
 const LOCATION_ID = process.env.LEADCONNECTOR_LOCATION_ID!
@@ -12,41 +14,54 @@ const CUSTOM_FIELD_IDS: Record<string, string> = {
   dateFunded: '4ZkP43R1IirhstWNcw4E',
 }
 
+const PAGE_CAP = 50
+
 export async function GET(req: Request) {
   const APIurl = new URL(req.url);
-  let startDateParam = APIurl.searchParams.get("date") ?? "";
+  let startDateParam = APIurl.searchParams.get("startDateParam") ?? "";
   if (startDateParam) {
     const splitDate = startDateParam.split('-');
-    startDateParam = `${splitDate[0]}-${splitDate[1]}-${splitDate[2]}`
+    startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
   }
   try {
-    const query = new URLSearchParams({
-      pipeline_id: PIPELINE_ID,
-      pipeline_stage_id: PIPELINE_STAGE_ID,
-      location_id: LOCATION_ID,
-      date: startDateParam
-    })
+    let page = 0
+    let allOpportunities: any[] = []
 
-    const url = `https://services.leadconnectorhq.com/opportunities/search?${query}`
+    while (page <= PAGE_CAP) {
+      const url = `https://services.leadconnectorhq.com/opportunities/search`
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        Version: '2021-07-28',
-        Authorization: `Bearer ${TOKEN}`,
-      },
-      cache: 'no-store',
-    })
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Version: '2021-07-28',
+          Authorization: `Bearer ${TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store',
+        body: JSON.stringify({
+          locationId: `${LOCATION_ID}`,
+          page: page,
+          limit: 20,
+        })
+      })
 
-    if (!response.ok) {
-      throw new Error(`LeadConnector error: ${response.status}`)
+      if (!response.ok) {
+        throw new Error(`LeadConnector error: ${response.status}`)
+      }
+
+      const jsonData = await response.json()
+      const opportunities = jsonData.opportunities ?? []
+
+      if (opportunities.length === 0) {
+        break
+      }
+
+      allOpportunities.push(...opportunities)
+      page++
     }
 
-    const jsonData = await response.json()
-    const opportunities = jsonData.opportunities ?? []
-
-    const rows = opportunities.map((opp: any) => {
+    const rows = allOpportunities.map((opp: any) => {
       const row: Record<string, any> = {
         name: opp.name,
         value: opp.monetaryValue,

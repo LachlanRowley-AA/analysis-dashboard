@@ -4,6 +4,7 @@ import { useAnalytics } from '../DataStorageContext';
 import { useState } from 'react';
 import { mergeAdsetData } from '@/lib/utils/calculateUtils';
 import { createBlankMetaAdsetData, MetaAdsetData } from '@/types/analytics';
+import { getSydneyDateParts, parseDateOnlyInAEDT } from '@/lib/utils/aedt';
 
 export const ProjectionTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
@@ -24,25 +25,22 @@ export const ProjectionTab = () => {
     ? data.filter(item => item.adsetName === selectedAdset)
     : data;
 
-  // Previous month for comparison
-  let previousMonth = new Date().getMonth() - 1;
-  if (previousMonth < 0) previousMonth = 11;
+  const { month: sydneyMonth } = getSydneyDateParts(new Date());
+  const previousMonth = sydneyMonth === 0 ? 11 : sydneyMonth - 1;
 
   const previousMonthData = filter
-    .filter(item => item.date.getMonth() === previousMonth)
+    .filter(item => getSydneyDateParts(item.date).month === previousMonth)
     .sort((a: MetaAdsetData, b: MetaAdsetData) => a.date.getTime() - b.date.getTime());
   const lastMonthData = mergeAdsetData(previousMonthData, 'Last Month');
 
-  // Current month
   const currentMonthData = filter
-    .filter(item => item.date.getMonth() === new Date().getMonth())
+    .filter(item => getSydneyDateParts(item.date).month === sydneyMonth)
     .sort((a: MetaAdsetData, b: MetaAdsetData) => a.date.getTime() - b.date.getTime());
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
 
-  // Use to switch between projecting currnet month data and prior month's
   const lookedAtMonth = lookingAt ? monthData : lastMonthData;
   const lookedAtMonthDaily = lookingAt ? currentMonthData : previousMonthData;
-  const DAYS_MONTH = lookedAtMonth.date.getDate();
+  const DAYS_MONTH = getSydneyDateParts(lookedAtMonth.date).date;
 
 
   // Projection
@@ -110,11 +108,13 @@ export const ProjectionTab = () => {
   const conversionValueDays = distributeMonthly(projectedMonth.conversionValue, DAYS_MONTH);
   const amountSpentDays = distributeMonthly(projectedMonth.amountSpent, DAYS_MONTH);
 
-  // create daily projections
+  const { year: sydneyYear, month: sydneyMonthNum } = getSydneyDateParts(new Date());
+  const monthStr = String(sydneyMonthNum + 1).padStart(2, "0");
+
   for (let i = 1; i <= DAYS_MONTH; i++) {
     const dayData: MetaAdsetData = createBlankMetaAdsetData("");
-
-    dayData.date = new Date(new Date().getFullYear(), new Date().getMonth(), i);
+    const dayStr = String(i).padStart(2, "0");
+    dayData.date = parseDateOnlyInAEDT(`${sydneyYear}-${monthStr}-${dayStr}`);
     dayData.reach = reachDays[i - 1];
     dayData.impressions = impressionsDays[i - 1];
     dayData.linkClicks = linkClicksDays[i - 1];

@@ -10,6 +10,7 @@ import { GHLTab } from '@/components/Dashboard/GHLTab';
 import { ProjectionTab } from '@/components/Dashboard/ProjectionTab';
 import { useDisclosure } from '@mantine/hooks';
 import { OrganicTab } from '../components/Dashboard/OrganicTab'
+import { TestingButton } from '@/components/TestingComponent';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
@@ -44,11 +45,7 @@ export default function Dashboard() {
             <Popover.Target>
               <Button
                 onClick={async () => {
-                  // setButtonClicked(true);
-                  // console.log((await fetch('/api/GetMetaMonthDailyData?startDateParam=2025-12-01&endDateParam=2026-01-20')).body);
-                  // await refreshMetaData(true);
                   await updateMetaData();
-                  // await fetch('/api/UpdateCache')
                 }}
                 onMouseEnter={open}
                 onMouseLeave={close}
@@ -62,6 +59,7 @@ export default function Dashboard() {
             </Popover.Dropdown>
           </Popover>
           <Text c='white'>Last updated {text}</Text>
+          <TestingButton />
         </Stack>
       </Group>
 

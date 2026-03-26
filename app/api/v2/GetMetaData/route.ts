@@ -1,3 +1,5 @@
+///Called with ./GetMetData?startDateParam={YYYY-MM-DD}&endDateParam={YYYY-MM-DD}&increment={NUM}
+
 export const runtime = 'nodejs'
 
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN!

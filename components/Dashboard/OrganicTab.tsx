@@ -8,11 +8,13 @@ export const OrganicTab = () => {
   const data = useAnalytics().metaData;
   const workingData = data.filter(item => item.adsetName === 'Organic');
   const merge = mergeAdsetData(workingData, 'Organic');
+
+  // console.log('organic data = ', workingData)
   return (
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md" c='white'>Organic Data</Title>
-        <MetricsGrid data={merge} />
+        <MetricsGrid data={merge} dataArr={workingData}/>
       </div>
     </Stack>
   );

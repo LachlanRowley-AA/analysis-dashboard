@@ -1,0 +1,362 @@
+=== DRY RUN DELETE ===
+metaAdsetData items to remove: [
+  {
+    "date": "2026-02-09T13:00:00.000Z",
+    "adsetName": "Organic",
+    "reach": 0,
+    "amountSpent": 0,
+    "linkClicks": 0,
+    "landingPageView": 0,
+    "lead": 1,
+    "frequency": 0,
+    "costPerLead": 0,
+    "impressions": 0,
+    "ctr": 0,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 0
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "ATO Custom Audience",
+    "reach": 683,
+    "amountSpent": 39.43,
+    "linkClicks": 5,
+    "landingPageView": 5,
+    "lead": 0,
+    "frequency": 1.124451,
+    "cost_per_lead": 0,
+    "impressions": 768,
+    "ctr": 0.65,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 51.341146
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "Advantage plus - Ads with Abbie",
+    "reach": 4375,
+    "amountSpent": 48.76,
+    "linkClicks": 28,
+    "landingPageView": 40,
+    "lead": 3,
+    "frequency": 1.0352,
+    "cost_per_lead": 16.25,
+    "impressions": 4529,
+    "ctr": 0.62,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 10.766174
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "Advantage plus - Machinery & trucks",
+    "reach": 878,
+    "amountSpent": 39.51,
+    "linkClicks": 9,
+    "landingPageView": 8,
+    "lead": 1,
+    "frequency": 1.299544,
+    "cost_per_lead": 19.75,
+    "impressions": 1141,
+    "ctr": 0.79,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 34.62752
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "Advantage plus",
+    "reach": 1865,
+    "amountSpent": 134.32,
+    "linkClicks": 23,
+    "landingPageView": 20,
+    "lead": 4,
+    "frequency": 1.248257,
+    "cost_per_lead": 44.77,
+    "impressions": 2328,
+    "ctr": 0.99,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 57.697595
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "Interest Targeting",
+    "reach": 792,
+    "amountSpent": 44.95,
+    "linkClicks": 8,
+    "landingPageView": 9,
+    "lead": 0,
+    "frequency": 1.112374,
+    "cost_per_lead": 44.95,
+    "impressions": 881,
+    "ctr": 0.91,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 51.021566
+  },
+  {
+    "date": "2026-02-10T00:00:00.000Z",
+    "adsetName": "Machinery & Trucks Custom Audience",
+    "reach": 433,
+    "amountSpent": 20,
+    "linkClicks": 3,
+    "landingPageView": 3,
+    "lead": 0,
+    "frequency": 1.161663,
+    "cost_per_lead": 0,
+    "impressions": 503,
+    "ctr": 0.6,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 39.761431
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "ATO Custom Audience",
+    "reach": 348,
+    "amountSpent": 22.27,
+    "linkClicks": 2,
+    "landingPageView": 1,
+    "lead": 0,
+    "frequency": 1.100575,
+    "cost_per_lead": 0,
+    "impressions": 383,
+    "ctr": 0.52,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 58.146214
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "Advantage plus - Ads with Abbie",
+    "reach": 2184,
+    "amountSpent": 25.16,
+    "linkClicks": 21,
+    "landingPageView": 22,
+    "lead": 1,
+    "frequency": 1.025183,
+    "cost_per_lead": 25.16,
+    "impressions": 2239,
+    "ctr": 0.94,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 11.237159
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "Advantage plus - Machinery & trucks",
+    "reach": 460,
+    "amountSpent": 17.39,
+    "linkClicks": 3,
+    "landingPageView": 3,
+    "lead": 0,
+    "frequency": 1.184783,
+    "cost_per_lead": 0,
+    "impressions": 545,
+    "ctr": 0.55,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 31.908257
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "Advantage plus",
+    "reach": 904,
+    "amountSpent": 54.93,
+    "linkClicks": 8,
+    "landingPageView": 7,
+    "lead": 0,
+    "frequency": 1.138274,
+    "cost_per_lead": 54.93,
+    "impressions": 1029,
+    "ctr": 0.78,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 53.381924
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "Interest Targeting",
+    "reach": 269,
+    "amountSpent": 18.72,
+    "linkClicks": 3,
+    "landingPageView": 3,
+    "lead": 0,
+    "frequency": 1.100372,
+    "cost_per_lead": 0,
+    "impressions": 296,
+    "ctr": 1.01,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 63.243243
+  },
+  {
+    "date": "2026-02-11T00:00:00.000Z",
+    "adsetName": "Machinery & Trucks Custom Audience",
+    "reach": 124,
+    "amountSpent": 6.71,
+    "linkClicks": 0,
+    "landingPageView": 0,
+    "lead": 0,
+    "frequency": 1.169355,
+    "cost_per_lead": 0,
+    "impressions": 145,
+    "ctr": 0,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 46.275862
+  }
+]
+fullMetaAdsetData items to remove: [
+  {
+    "date": "2026-01-31T13:00:00.000Z",
+    "adsetName": "Organic",
+    "reach": 0,
+    "amountSpent": 0,
+    "linkClicks": 0,
+    "landingPageView": 0,
+    "lead": 5,
+    "frequency": 0,
+    "costPerLead": 0,
+    "impressions": 0,
+    "ctr": 0,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 0
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "ATO Custom Audience",
+    "reach": 1567,
+    "amountSpent": 107.97,
+    "linkClicks": 19,
+    "landingPageView": 18,
+    "lead": 1,
+    "frequency": 1.317167,
+    "cost_per_lead": 0,
+    "impressions": 2064,
+    "ctr": 0.92,
+    "conversions": 1,
+    "conversionValue": 7326,
+    "cpm": 52.311047
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "Advantage plus - Ads with Abbie",
+    "reach": 10833,
+    "amountSpent": 127.4,
+    "linkClicks": 76,
+    "landingPageView": 99,
+    "lead": 22,
+    "frequency": 1.046894,
+    "cost_per_lead": 25.48,
+    "impressions": 11341,
+    "ctr": 0.67,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 11.233577
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "Advantage plus - Machinery & trucks",
+    "reach": 1914,
+    "amountSpent": 102.12,
+    "linkClicks": 19,
+    "landingPageView": 17,
+    "lead": 6,
+    "frequency": 1.596656,
+    "cost_per_lead": 51.06,
+    "impressions": 3056,
+    "ctr": 0.62,
+    "conversions": 2,
+    "conversionValue": 11190,
+    "cpm": 33.41623
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "Advantage plus",
+    "reach": 3926,
+    "amountSpent": 335.71,
+    "linkClicks": 50,
+    "landingPageView": 44,
+    "lead": 24,
+    "frequency": 1.490066,
+    "cost_per_lead": 37.3,
+    "impressions": 5850,
+    "ctr": 0.85,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 57.386325
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "Interest Targeting",
+    "reach": 1702,
+    "amountSpent": 105.71,
+    "linkClicks": 14,
+    "landingPageView": 15,
+    "lead": 3,
+    "frequency": 1.246769,
+    "cost_per_lead": 105.71,
+    "impressions": 2122,
+    "ctr": 0.66,
+    "conversions": 1,
+    "conversionValue": 4000,
+    "cpm": 49.816211
+  },
+  {
+    "date": "2026-02-09T00:00:00.000Z",
+    "adsetName": "Machinery & Trucks Custom Audience",
+    "reach": 966,
+    "amountSpent": 51.35,
+    "linkClicks": 14,
+    "landingPageView": 16,
+    "lead": 4,
+    "frequency": 1.241201,
+    "cost_per_lead": 51.35,
+    "impressions": 1199,
+    "ctr": 1.17,
+    "conversions": 0,
+    "conversionValue": 0,
+    "cpm": 42.827356
+  }
+]
+testData items to remove: []
+=== DRY RUN ADD ===
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus","reach":1983,"amountSpent":146.46,"linkClicks":19,"landingPageView":17,"lead":5,"frequency":1.257186,"cost_per_lead":29.29,"impressions":2493,"ctr":0.76,"conversions":0,"conversionValue":0,"cpm":58.748496}
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Ads with Abbie","reach":4517,"amountSpent":53.48,"linkClicks":27,"landingPageView":37,"lead":1,"frequency":1.012398,"cost_per_lead":53.48,"impressions":4573,"ctr":0.59,"conversions":0,"conversionValue":0,"cpm":11.69473}
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Machinery & trucks","reach":1011,"amountSpent":45.22,"linkClicks":7,"landingPageView":6,"lead":1,"frequency":1.355094,"cost_per_lead":0,"impressions":1370,"ctr":0.51,"conversions":0,"conversionValue":0,"cpm":33.007299}
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"ATO Custom Audience","reach":786,"amountSpent":46.27,"linkClicks":12,"landingPageView":12,"lead":0,"frequency":1.161578,"cost_per_lead":0,"impressions":913,"ctr":1.31,"conversions":0,"conversionValue":0,"cpm":50.67908}
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Interest Targeting","reach":828,"amountSpent":42.04,"linkClicks":3,"landingPageView":3,"lead":0,"frequency":1.141304,"cost_per_lead":0,"impressions":945,"ctr":0.32,"conversions":0,"conversionValue":0,"cpm":44.486772}
+Key: metaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Machinery & Trucks Custom Audience","reach":486,"amountSpent":24.64,"linkClicks":11,"landingPageView":13,"lead":1,"frequency":1.133745,"cost_per_lead":24.64,"impressions":551,"ctr":2,"conversions":0,"conversionValue":0,"cpm":44.718693}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"Advantage plus","reach":1865,"amountSpent":134.32,"linkClicks":23,"landingPageView":20,"lead":4,"frequency":1.248257,"cost_per_lead":44.77,"impressions":2328,"ctr":0.99,"conversions":0,"conversionValue":0,"cpm":57.697595}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"Advantage plus - Ads with Abbie","reach":4375,"amountSpent":48.76,"linkClicks":29,"landingPageView":40,"lead":3,"frequency":1.0352,"cost_per_lead":16.25,"impressions":4529,"ctr":0.64,"conversions":0,"conversionValue":0,"cpm":10.766174}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"Advantage plus - Machinery & trucks","reach":878,"amountSpent":39.51,"linkClicks":9,"landingPageView":8,"lead":1,"frequency":1.299544,"cost_per_lead":19.75,"impressions":1141,"ctr":0.79,"conversions":0,"conversionValue":0,"cpm":34.62752}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"ATO Custom Audience","reach":683,"amountSpent":39.43,"linkClicks":5,"landingPageView":5,"lead":0,"frequency":1.124451,"cost_per_lead":0,"impressions":768,"ctr":0.65,"conversions":0,"conversionValue":0,"cpm":51.341146}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"Interest Targeting","reach":792,"amountSpent":44.95,"linkClicks":8,"landingPageView":9,"lead":0,"frequency":1.112374,"cost_per_lead":44.95,"impressions":881,"ctr":0.91,"conversions":0,"conversionValue":0,"cpm":51.021566}
+Key: metaAdsetData, Score: 1770681600, Value: {"date":"2026-02-10T00:00:00.000Z","adsetName":"Machinery & Trucks Custom Audience","reach":433,"amountSpent":20,"linkClicks":3,"landingPageView":3,"lead":0,"frequency":1.161663,"cost_per_lead":0,"impressions":503,"ctr":0.6,"conversions":0,"conversionValue":0,"cpm":39.761431}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"Advantage plus","reach":943,"amountSpent":57.04,"linkClicks":9,"landingPageView":7,"lead":0,"frequency":1.145281,"cost_per_lead":57.04,"impressions":1080,"ctr":0.83,"conversions":0,"conversionValue":0,"cpm":52.814815}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"Advantage plus - Ads with Abbie","reach":2234,"amountSpent":25.78,"linkClicks":21,"landingPageView":22,"lead":1,"frequency":1.025515,"cost_per_lead":25.78,"impressions":2291,"ctr":0.92,"conversions":0,"conversionValue":0,"cpm":11.252728}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"Advantage plus - Machinery & trucks","reach":474,"amountSpent":17.65,"linkClicks":3,"landingPageView":3,"lead":0,"frequency":1.191983,"cost_per_lead":0,"impressions":565,"ctr":0.53,"conversions":0,"conversionValue":0,"cpm":31.238938}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"ATO Custom Audience","reach":354,"amountSpent":22.5,"linkClicks":2,"landingPageView":1,"lead":0,"frequency":1.09887,"cost_per_lead":0,"impressions":389,"ctr":0.51,"conversions":0,"conversionValue":0,"cpm":57.840617}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"Interest Targeting","reach":277,"amountSpent":18.98,"linkClicks":3,"landingPageView":3,"lead":0,"frequency":1.104693,"cost_per_lead":0,"impressions":306,"ctr":0.98,"conversions":0,"conversionValue":0,"cpm":62.026144}
+Key: metaAdsetData, Score: 1770768000, Value: {"date":"2026-02-11T00:00:00.000Z","adsetName":"Machinery & Trucks Custom Audience","reach":130,"amountSpent":6.84,"linkClicks":0,"landingPageView":0,"lead":0,"frequency":1.146154,"cost_per_lead":0,"impressions":149,"ctr":0,"conversions":0,"conversionValue":0,"cpm":45.90604}
+Key: metaAdsetData, Score: 1770642000, Value: {"date":"2026-02-09T13:00:00.000Z","adsetName":"Organic","reach":0,"amountSpent":0,"linkClicks":0,"landingPageView":0,"lead":1,"frequency":0,"costPerLead":0,"impressions":0,"ctr":0,"conversions":0,"conversionValue":0,"cpm":0}
+Key: metaAdsetData, Score: 1770642000, Value: {"date":"2026-02-09T13:00:00.000Z","adsetName":"Organic","reach":0,"amountSpent":0,"linkClicks":0,"landingPageView":0,"lead":1,"frequency":0,"costPerLead":0,"impressions":0,"ctr":0,"conversions":0,"conversionValue":0,"cpm":0}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus","reach":3946,"amountSpent":337.82,"linkClicks":51,"landingPageView":44,"lead":7,"frequency":1.495438,"cost_per_lead":37.54,"impressions":5901,"ctr":0.86,"conversions":0,"conversionValue":0,"cpm":57.247924}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus","reach":3946,"amountSpent":337.82,"linkClicks":51,"landingPageView":44,"lead":7,"frequency":1.495438,"cost_per_lead":37.54,"impressions":5901,"ctr":0.86,"conversions":0,"conversionValue":0,"cpm":57.247924}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Ads with Abbie","reach":10888,"amountSpent":128.02,"linkClicks":77,"landingPageView":99,"lead":5,"frequency":1.046381,"cost_per_lead":25.6,"impressions":11393,"ctr":0.68,"conversions":0,"conversionValue":0,"cpm":11.236724}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Ads with Abbie","reach":10888,"amountSpent":128.02,"linkClicks":77,"landingPageView":99,"lead":5,"frequency":1.046381,"cost_per_lead":25.6,"impressions":11393,"ctr":0.68,"conversions":0,"conversionValue":0,"cpm":11.236724}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Machinery & trucks","reach":1929,"amountSpent":102.38,"linkClicks":19,"landingPageView":17,"lead":2,"frequency":1.594609,"cost_per_lead":51.19,"impressions":3076,"ctr":0.62,"conversions":2,"conversionValue":11190,"cpm":33.283485}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Advantage plus - Machinery & trucks","reach":1929,"amountSpent":102.38,"linkClicks":19,"landingPageView":17,"lead":2,"frequency":1.594609,"cost_per_lead":51.19,"impressions":3076,"ctr":0.62,"conversions":2,"conversionValue":11190,"cpm":33.283485}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"ATO Custom Audience","reach":1567,"amountSpent":108.2,"linkClicks":19,"landingPageView":18,"lead":0,"frequency":1.320996,"cost_per_lead":0,"impressions":2070,"ctr":0.92,"conversions":1,"conversionValue":7326,"cpm":52.270531}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"ATO Custom Audience","reach":1567,"amountSpent":108.2,"linkClicks":19,"landingPageView":18,"lead":0,"frequency":1.320996,"cost_per_lead":0,"impressions":2070,"ctr":0.92,"conversions":1,"conversionValue":7326,"cpm":52.270531}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Interest Targeting","reach":1709,"amountSpent":105.97,"linkClicks":14,"landingPageView":15,"lead":0,"frequency":1.247513,"cost_per_lead":105.97,"impressions":2132,"ctr":0.66,"conversions":1,"conversionValue":4000,"cpm":49.704503}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Interest Targeting","reach":1709,"amountSpent":105.97,"linkClicks":14,"landingPageView":15,"lead":0,"frequency":1.247513,"cost_per_lead":105.97,"impressions":2132,"ctr":0.66,"conversions":1,"conversionValue":4000,"cpm":49.704503}
+Key: fullMetaAdsetData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Machinery & Trucks Custom Audience","reach":969,"amountSpent":51.48,"linkClicks":14,"landingPageView":16,"lead":0,"frequency":1.241486,"cost_per_lead":51.48,"impressions":1203,"ctr":1.16,"conversions":0,"conversionValue":0,"cpm":42.793017}
+Key: testData, Score: 1770595200, Value: {"date":"2026-02-09T00:00:00.000Z","adsetName":"Machinery & Trucks Custom Audience","reach":969,"amountSpent":51.48,"linkClicks":14,"landingPageView":16,"lead":0,"frequency":1.241486,"cost_per_lead":51.48,"impressions":1203,"ctr":1.16,"conversions":0,"conversionValue":0,"cpm":42.793017}
+Key: fullMetaAdsetData, Score: 1769864400, Value: {"date":"2026-01-31T13:00:00.000Z","adsetName":"Organic","reach":0,"amountSpent":0,"linkClicks":0,"landingPageView":0,"lead":2,"frequency":0,"costPerLead":0,"impressions":0,"ctr":0,"conversions":0,"conversionValue":0,"cpm":0}
+Key: testData, Score: 1769864400, Value: {"date":"2026-01-31T13:00:00.000Z","adsetName":"Organic","reach":0,"amountSpent":0,"linkClicks":0,"landingPageView":0,"lead":2,"frequency":0,"costPerLead":0,"impressions":0,"ctr":0,"conversions":0,"conversionValue":0,"cpm":0}
+Would set 'metaAdsetDataTimestamp' to 2026-02-11T04:15:37.753Z

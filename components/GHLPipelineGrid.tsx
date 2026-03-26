@@ -61,9 +61,9 @@ export const GHLPipelineGrid: React.FC<GHLMetricsGridProps> = ({
         icon={<IconMessage size={28} />}
         title={stageName}
         value={
-             `${value.toLocaleString()} | ${numberFormatter.format(
-                (value / (data.length || 1)) * 100
-              )}%`
+          `${value.toLocaleString()} | ${numberFormatter.format(
+            (value / (data.length || 1)) * 100
+          )}%`
         }
         color="#ffa94d"
       />
@@ -75,6 +75,22 @@ export const GHLPipelineGrid: React.FC<GHLMetricsGridProps> = ({
       <Grid.Col span={colSpan}>{card}</Grid.Col>
     </Fragment>
   ));
+
+  const deadCount = (stageCount.get(`Didn't Proceed`) ?? 0) + (stageCount.get(`Not Qualified`) ?? 0) + (stageCount.get(`Not Funded`) ?? 0) + (stageCount.get(`No Shows`) ?? 0);
+  console.log(stageCount)
+  const deadCard = (
+    <StatCard
+      key={'dead'}
+      icon={<IconMessage size={28} />}
+      title={'Dead'}
+      value={
+        `${deadCount.toLocaleString()} | ${numberFormatter.format(
+          (deadCount / (data.length || 1)) * 100
+        )}%`
+      }
+      color="#ffa94d"
+    />
+  )
 
   return (
     <>
@@ -100,6 +116,8 @@ export const GHLPipelineGrid: React.FC<GHLMetricsGridProps> = ({
 
       <Container p="sm" size="xl">
         <Grid>{cards}</Grid>
+        {deadCard}
+
       </Container>
     </>
   );

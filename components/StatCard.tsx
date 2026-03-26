@@ -21,7 +21,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   onClick,
   active,
   sameDayChange,
-  format
+  format,
+  priorTextStart
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -34,11 +35,6 @@ export const StatCard: React.FC<StatCardProps> = ({
     sameDayChange?.absolute !== undefined
       ? formatValue(sameDayChange.absolute, formatProp)
       : undefined;
-
-
-  if (!!onClick) {
-    console.log(`${title} has onclick`)
-  }
 
   return (
     <Paper
@@ -58,22 +54,6 @@ export const StatCard: React.FC<StatCardProps> = ({
       bg={active ? rgba(color, 0.18) : '#1C262D'} //3d3b3b
     > 
       <Group justify="space-between" mb="md" wrap="nowrap">
-        {/* <div
-          style={{
-            background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-            padding: '12px',
-            borderRadius: '12px',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            // boxShadow: `0 4px 12px ${color}30`,
-            transition: 'transform 0.3s ease',
-            transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-          }}
-        >
-          {icon}
-        </div> */}
           {change && (
             <div>
               <Badge
@@ -152,7 +132,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           }}
           c='#bbbbbb'
         >
-          from {priorValue ? priorValue : ''}
+          {priorTextStart ? priorTextStart : 'from'} {priorValue ? priorValue : ''}
         </Text>
       )}
 

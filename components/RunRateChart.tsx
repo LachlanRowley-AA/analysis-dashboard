@@ -1,8 +1,10 @@
 import { AreaChart } from '@mantine/charts';
 import { useMatches } from '@mantine/core';
+import { MetaAdsetData } from '@/types/analytics';
+import { getSydneyDateParts } from '@/lib/utils/aedt';
 
 interface GraphDataPoint {
-    day: string;
+    day: number; // 1–31
     value: number | null;
     comparison?: number | null;
 }
@@ -21,85 +23,123 @@ type MetricKey = keyof Pick<
     | 'cpm'
 >;
 
-import { useAnalytics } from './DataStorageContext';
-import { MetaAdsetData } from '@/types/analytics';
+/* ------------------- Helpers ------------------- */
 
-function getCumulativeData(
+function daysInMonthSydney(date: Date): number {
+    const { year, month } = getSydneyDateParts(date);
+    return new Date(year, month + 1, 0).getDate();
+}
+
+/* ------------------- Core logic ------------------- */
+
+function getMonthDayCumulativeData(
     data: MetaAdsetData[],
-    metric: MetricKey
-): GraphDataPoint[] {
-    data.sort((a, b) => a.date.getTime() - b.date.getTime());
+    metric: MetricKey,
+    maxDay: number
+): Map<number, number> {
+    const perDay = new Map<number, number>();
 
-    let counter = 0;
+    const sorted = [...data].sort(
+        (a, b) => a.date.getTime() - b.date.getTime()
+    );
 
-    return data.map(item => {
-        counter += Number(item[metric] ?? 0);
-
-        return {
-            day: item.date.getDate().toString(),
-            value: counter,
-        };
-    });
-}
-
-function mergeDupes(data: GraphDataPoint[]): GraphDataPoint[] {
-    const mergedData: GraphDataPoint[] = [];
-    const merged = new Map<string, GraphDataPoint>();
-    data.forEach(item => {
-        if (merged.has(item.day)) {
-            const existing = merged.get(item.day)!;
-            existing.value = existing.value ? existing.value + ((item.value || 0) - existing.value) : item.value;
-        } else {
-            merged.set(item.day, { ...item });
-        }
-    });
-    for (const key of merged.keys()) {
-        const dataPoint : GraphDataPoint = { day: key, value: merged.get(key)!.value };
-        mergedData.push(dataPoint);
+    for (const item of sorted) {
+        const day = getSydneyDateParts(item.date).date;
+        perDay.set(
+            day,
+            (perDay.get(day) ?? 0) + Number(item[metric] ?? 0)
+        );
     }
-    return mergedData;
+
+    const cumulative = new Map<number, number>();
+    let runningTotal = 0;
+
+    for (let day = 1; day <= maxDay; day++) {
+        runningTotal += perDay.get(day) ?? 0;
+        cumulative.set(day, runningTotal);
+    }
+
+    return cumulative;
 }
+
+/* ------------------- Component ------------------- */
 
 interface RunRateChartProps {
     analytics: MetaAdsetData[];
     comparisonData?: MetaAdsetData[];
     metric: MetricKey;
 }
-export function RunRateChart({ analytics, comparisonData, metric }: RunRateChartProps) {
-    if (!analytics || analytics.length === 0) {
+
+export function RunRateChart({
+    analytics,
+    comparisonData,
+    metric,
+}: RunRateChartProps) {
+    if (!analytics?.length) {
         return <div>No data available</div>;
     }
 
-    const graphData = mergeDupes(getCumulativeData(analytics, metric));
-    const comparison = mergeDupes(getCumulativeData(comparisonData || [], metric));
-    for (let i = 0; i < graphData.length; i++) {
-        if (comparison[i]) {
-            graphData[i].comparison = comparison[i].value || 0;
-        }
-    }
-    for (let i = graphData.length; i < comparison.length; i++) {
-        const newDataPoint: GraphDataPoint = {
-            day: comparison[i].day,
-            value: null,
-            comparison: comparison[i].value || null,
-        }
-        graphData.push(newDataPoint);
+    const today = new Date();
+    const currentDay = getSydneyDateParts(today).date;
+
+    const baseMonthDays = daysInMonthSydney(today);
+    const comparisonMonthDays =
+        comparisonData?.length
+            ? daysInMonthSydney(comparisonData[0].date)
+            : 31;
+
+    const baseMap = getMonthDayCumulativeData(
+        analytics,
+        metric,
+        currentDay // stop at today
+    );
+
+    const comparisonMap = comparisonData
+        ? getMonthDayCumulativeData(
+              comparisonData,
+              metric,
+              comparisonMonthDays // full month
+          )
+        : new Map<number, number>();
+
+    const maxX = Math.max(
+        currentDay,
+        comparisonMonthDays
+    );
+
+    const graphData: GraphDataPoint[] = [];
+
+    for (let day = 1; day <= maxX; day++) {
+        graphData.push({
+            day,
+            value:
+                day <= currentDay
+                    ? baseMap.get(day) ?? 0
+                    : null,
+            comparison:
+                day <= comparisonMonthDays
+                    ? comparisonMap.get(day) ?? 0
+                    : null,
+        });
     }
 
     const showTooltip = useMatches({
         base: false,
-        md: true
+        md: true,
     });
 
     return (
         <AreaChart
             h={300}
             data={graphData}
-            series={[{ name: 'value', color: '#01E194' }, { name: 'comparison', color: 'gray' }]}
-            dataKey='day'
-            withPointLabels={false}
+            dataKey="day"
+            series={[
+                { name: 'value', color: '#01E194' },
+                { name: 'comparison', color: 'gray' },
+            ]}
+            withTooltip={showTooltip}
             connectNulls={false}
-            withTooltip
+            withPointLabels={false}
         />
-    )
+    );
 }

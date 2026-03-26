@@ -1,12 +1,10 @@
-import { ghlAdsetGrouping } from "@/lib/constants/analytics"
-import { ghlStageFormatter } from "@/lib/formatter"
 import { useAnalytics } from "../DataStorageContext"
-import { GHL_PIPELINE_IDS } from "@/lib/constants/ghl"
 import { GHLMetricsGrid } from "../GHLMetricsGrid"
-import { Stepper, Container, Text, Select } from '@mantine/core'
+import { Container, Select } from '@mantine/core'
 import { GHLEVGrid } from "../GHLEVGrid"
 import { useState } from "react"
 import { GHLPipelineGrid } from "../GHLPipelineGrid"
+import { getSydneyDateParts } from "@/lib/utils/aedt"
 
 export const GHLTab = () => {
     const { ghlData } = useAnalytics();
@@ -14,6 +12,8 @@ export const GHLTab = () => {
     if (!ghlData) {
         return;
     }
+    const { month: sydneyMonth } = getSydneyDateParts(new Date());
+    const previousMonth = sydneyMonth === 0 ? 11 : sydneyMonth - 1;
     const adsetNames = [
         'All',
         ...Array.from(
@@ -25,12 +25,8 @@ export const GHLTab = () => {
         ),
     ];
     let filter = selectedAdset && selectedAdset !== 'All' ? ghlData.filter(item => item.adset === selectedAdset) : ghlData;
-    let previousMonth = new Date().getMonth() - 1;
-    if (previousMonth < 0) {
-        previousMonth = 11;
-    }
-    const filteredData = filter.filter(item => item.dateCreated && new Date(item.dateCreated).getMonth() == new Date().getMonth())
-    const comparisonData = filter.filter(item => item.dateCreated && new Date(item.dateCreated).getMonth() == previousMonth)
+    const filteredData = filter.filter(item => item.dateCreated && getSydneyDateParts(new Date(item.dateCreated)).month === sydneyMonth);
+    const comparisonData = filter.filter(item => item.dateCreated && getSydneyDateParts(new Date(item.dateCreated)).month === previousMonth);
     return (
         <Container size='xl'>
             <Select

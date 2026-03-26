@@ -3,10 +3,13 @@ import { MetricsGrid } from '../MetricsGrid';
 import { useAnalytics } from '../DataStorageContext';
 import { useState } from 'react';
 import { mergeAdsetData } from '@/lib/utils/calculateUtils';
+import { getSydneyDateParts } from '@/lib/utils/aedt';
 
 export const MonthComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
   let data = useAnalytics().metaData;
+  const { month: sydneyMonth } = getSydneyDateParts(new Date());
+  const previousMonth = sydneyMonth === 0 ? 11 : sydneyMonth - 1;
 
   //Filter out organic leads
   data = data.filter(item => item.adsetName !== "Organic");
@@ -16,14 +19,10 @@ export const MonthComparisonTab = () => {
 
   let filter = selectedAdset && selectedAdset != 'All' ?
     data.filter(item => item.adsetName === selectedAdset) : data;
-  let previousMonth = new Date().getMonth() - 1;
-  if (previousMonth < 0) {
-    previousMonth = 11;
-  }
-  const previousMonthData = filter.filter(item => item.date.getMonth() === previousMonth);
+  const previousMonthData = filter.filter(item => getSydneyDateParts(item.date).month === previousMonth);
   const lastMonthData = mergeAdsetData(previousMonthData, 'Last Month');
 
-  const currentMonthData = filter.filter(item => item.date.getMonth() === new Date().getMonth());
+  const currentMonthData = filter.filter(item => getSydneyDateParts(item.date).month === sydneyMonth);
   const monthData = mergeAdsetData(currentMonthData, 'Current Month');
 
 
