@@ -57,18 +57,17 @@ export default function Dashboard() {
               <Text fz='sm'>Updates for today may not show up until 11am</Text>
             </Popover.Dropdown>
           </Popover> */}
-          <Text c='white'>Last updated {text}</Text>
         </Stack>
       </Group>
 
       <Tabs value={activeTab} onChange={setActiveTab} c='#cf0072'>
         <Tabs.List mb="xl" c='#01E194'>
           <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
-          <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
-          <Tabs.Tab value="total">Total</Tabs.Tab>
+          {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
+          <Tabs.Tab value="total">Total</Tabs.Tab> */}
           <Tabs.Tab value="organic">Organic</Tabs.Tab>
-          <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
-          <Tabs.Tab value="projection">Project</Tabs.Tab>
+          {/* <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
+          <Tabs.Tab value="projection">Project</Tabs.Tab> */}
         </Tabs.List>
 
         <Tabs.Panel value="monthComparison">
