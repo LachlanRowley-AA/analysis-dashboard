@@ -13,12 +13,11 @@ import {
   IconCoin,
 } from '@tabler/icons-react';
 import { numberFormatter } from '@/utils/formatter';
-import { LTVGrid } from './LTV';
+// import { LTVGrid } from './LTV';
 import { RunRateChart } from './RunRateChart';
 import { useMetaData} from '@/app/context/MetaContextProvider';
-import { LTVCost } from './LTVCtAC';
+// import { LTVCost } from './LTVCtAC';
 import { Fragment } from 'react';
-import { calcDeltaEfficiency } from './Delta';
 
 interface MetricsGridProps {
   data: AdSetMetric;
@@ -144,57 +143,10 @@ export const OrganicMetricsGrid: React.FC<MetricsGridProps> = ({
       </Grid.Col>
     ) : null;
 
-  // Derived metrics computed once
-  const cpl = data.lead > 0 ? data.amountSpent / data.lead : null;
-  const cpa = data.conversions > 0 ? data.amountSpent / data.conversions : null;
   const roas = data.amountSpent > 0 ? data.conversionValue / data.amountSpent : 0;
 
-  const comparisonCpl =
-    comparison && comparison.lead > 0
-      ? comparison.amountSpent / comparison.lead
-      : undefined;
-  const comparisonCpa =
-    comparison && comparison.conversions > 0
-      ? comparison.amountSpent / comparison.conversions
-      : undefined;
-  const comparisonRoas =
-    comparison && comparison.amountSpent > 0
-      ? comparison.conversionValue / comparison.amountSpent
-      : undefined;
-
-  // Delta efficiency (used in two cards)
-  const deltaEfficiency = useMemo(
-    () =>
-      dataArr && dataArr.length > 0
-        ? calcDeltaEfficiency(
-            sameDayValues.currentLead,
-            sameDayValues.currentSpend,
-            sameDayValues.comparisonLead,
-            sameDayValues.comparisonSpend
-          )
-        : null,
-    [sameDayValues, dataArr]
-  );
 
   // Projected ROAS logic extracted and clarified
-  const projectedRoas = useMemo((): string => {
-    if (!comparison || !dataArr || dataArr.length === 0) return 'N/A';
-
-    const spendDiff = Math.abs(sameDayValues.currentSpend - sameDayValues.comparisonSpend);
-    const spendChangePct =
-      sameDayValues.comparisonSpend > 0
-        ? (spendDiff / sameDayValues.comparisonSpend) * 100
-        : 0;
-
-    // If spend changed by more than 5%, use current ROAS as-is
-    if (spendChangePct > 5) {
-      return roas.toFixed(2);
-    }
-
-    // Otherwise, scale ROAS by delta efficiency
-    const scaled = deltaEfficiency != null ? roas * (deltaEfficiency / 100) : 0;
-    return Math.max(scaled, 0).toFixed(2);
-  }, [comparison, dataArr, sameDayValues, roas, deltaEfficiency]);
 
   const StatCards = [
     <StatCard

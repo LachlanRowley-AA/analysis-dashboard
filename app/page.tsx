@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Container, Group, Title, Button, Tabs, Loader, Text, Stack, Center, Popover } from '@mantine/core';
 import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
 import { useDisclosure } from '@mantine/hooks';
-import { TestingButton } from '@/components/TestingComponent';
 import { OrganicTab } from "@/components/Dashboard/OrganicTab";
 
 export default function Dashboard() {

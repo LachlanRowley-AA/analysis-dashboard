@@ -13,12 +13,12 @@ import {
   IconCoin,
 } from '@tabler/icons-react';
 import { numberFormatter } from '@/utils/formatter';
-import { LTVGrid } from './LTV';
+// import { LTVGrid } from './LTV';
 import { RunRateChart } from './RunRateChart';
 import { useMetaData} from '@/app/context/MetaContextProvider';
-import { LTVCost } from './LTVCtAC';
+// import { LTVCost } from './LTVCtAC';
 import { Fragment } from 'react';
-import { calcDeltaEfficiency } from './Delta';
+// import { calcDeltaEfficiency } from './Delta';
 
 interface MetricsGridProps {
   data: AdSetMetric;
@@ -162,39 +162,38 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       ? comparison.conversionValue / comparison.amountSpent
       : undefined;
 
-  // Delta efficiency (used in two cards)
-  const deltaEfficiency = useMemo(
-    () =>
-      dataArr && dataArr.length > 0
-        ? calcDeltaEfficiency(
-            sameDayValues.currentLead,
-            sameDayValues.currentSpend,
-            sameDayValues.comparisonLead,
-            sameDayValues.comparisonSpend
-          )
-        : null,
-    [sameDayValues, dataArr]
-  );
+  // const deltaEfficiency = useMemo(
+  //   () =>
+  //     dataArr && dataArr.length > 0
+  //       ? calcDeltaEfficiency(
+  //           sameDayValues.currentLead,
+  //           sameDayValues.currentSpend,
+  //           sameDayValues.comparisonLead,
+  //           sameDayValues.comparisonSpend
+  //         )
+  //       : null,
+  //   [sameDayValues, dataArr]
+  // );
 
   // Projected ROAS logic extracted and clarified
-  const projectedRoas = useMemo((): string => {
-    if (!comparison || !dataArr || dataArr.length === 0) return 'N/A';
+  // const projectedRoas = useMemo((): string => {
+  //   if (!comparison || !dataArr || dataArr.length === 0) return 'N/A';
 
-    const spendDiff = Math.abs(sameDayValues.currentSpend - sameDayValues.comparisonSpend);
-    const spendChangePct =
-      sameDayValues.comparisonSpend > 0
-        ? (spendDiff / sameDayValues.comparisonSpend) * 100
-        : 0;
+  //   const spendDiff = Math.abs(sameDayValues.currentSpend - sameDayValues.comparisonSpend);
+  //   const spendChangePct =
+  //     sameDayValues.comparisonSpend > 0
+  //       ? (spendDiff / sameDayValues.comparisonSpend) * 100
+  //       : 0;
 
-    // If spend changed by more than 5%, use current ROAS as-is
-    if (spendChangePct > 5) {
-      return roas.toFixed(2);
-    }
+  //   // If spend changed by more than 5%, use current ROAS as-is
+  //   if (spendChangePct > 5) {
+  //     return roas.toFixed(2);
+  //   }
 
-    // Otherwise, scale ROAS by delta efficiency
-    const scaled = deltaEfficiency != null ? roas * (deltaEfficiency / 100) : 0;
-    return Math.max(scaled, 0).toFixed(2);
-  }, [comparison, dataArr, sameDayValues, roas, deltaEfficiency]);
+  //   // Otherwise, scale ROAS by delta efficiency
+  //   const scaled = deltaEfficiency != null ? roas * (deltaEfficiency / 100) : 0;
+  //   return Math.max(scaled, 0).toFixed(2);
+  // }, [comparison, dataArr, sameDayValues, roas, deltaEfficiency]);
 
   const spendChangePerDay =
     currentDayOfMonth > 0
