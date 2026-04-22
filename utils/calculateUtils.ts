@@ -1,5 +1,5 @@
-import { createBlankMetaAdsetData, GHLData, MetaAdsetData } from "@/types/analytics";
-import { ghlAdsetGrouping } from "../constants/analytics";
+import { createBlankMetaAdsetData, GHLData, AdSetMetric } from "@/app/lib/types";
+import { ghlAdsetGrouping } from "@/utils/constants/analytics";
 
 const ATO_LTV = 8000;
 const MACHINERY_LTV = 15000;
@@ -20,12 +20,12 @@ export const calculateLTV = (ghlData: GHLData[]): number => {
 };
 
 //Merge multiple adset data entries into one
-export const mergeAdsetData = (data: MetaAdsetData[], adsetName: string) => {
+export const mergeAdsetData = (data: AdSetMetric[], adsetName: string) => {
     const count = data.length;
     if(data.length == 0) {
         return createBlankMetaAdsetData("");
     }
-    let mergedData: MetaAdsetData = {
+    let mergedData: AdSetMetric = {
         adsetName: adsetName,
         date: data[data.length-1].date ?? Date.now(),
         reach: data.reduce((sum, item) => sum + item.reach, 0),
@@ -34,7 +34,7 @@ export const mergeAdsetData = (data: MetaAdsetData[], adsetName: string) => {
         landingPageView: data.reduce((sum, item) => sum + item.landingPageView, 0),
         lead: data.reduce((sum, item) => sum + item.lead, 0),
         frequency: data.reduce((sum, item) => sum + item.frequency, 0) / count,
-        costPerLead: data.reduce((sum, item) => sum + item.costPerLead, 0) / count,
+        cost_per_lead: data.reduce((sum, item) => sum + item.cost_per_lead, 0) / count,
         impressions: data.reduce((sum, item) => sum + item.impressions, 0),
         ctr: data.reduce((sum, item) => sum + item.ctr, 0) / count,
         conversions: data.reduce((sum, item) => sum + item.conversions, 0),

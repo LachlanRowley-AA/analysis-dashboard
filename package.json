@@ -6,17 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest"  
+    "test": "vitest"
   },
   "dependencies": {
-    "date-fns": "^3.6.0",
-    "date-fns-tz": "^3.2.0",
     "@mantine/charts": "^8.3.12",
     "@mantine/core": "^8.3.12",
     "@mantine/hooks": "^8.3.12",
     "@tabler/icons-react": "^3.36.1",
+    "@types/luxon": "^3.7.1",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
     "ioredis": "^5.9.2",
     "lucide-react": "^0.562.0",
+    "luxon": "^3.7.2",
     "next": "16.1.1",
     "nvm": "^0.0.4",
     "react": "19.2.3",

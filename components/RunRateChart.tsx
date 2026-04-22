@@ -1,7 +1,6 @@
 import { AreaChart } from '@mantine/charts';
 import { useMatches } from '@mantine/core';
-import { MetaAdsetData } from '@/types/analytics';
-import { getSydneyDateParts } from '@/lib/utils/aedt';
+import { AdSetMetric } from '@/app/lib/types';
 
 interface GraphDataPoint {
     day: number; // 1–31
@@ -10,7 +9,7 @@ interface GraphDataPoint {
 }
 
 type MetricKey = keyof Pick<
-    MetaAdsetData,
+    AdSetMetric,
     | 'lead'
     | 'amountSpent'
     | 'reach'
@@ -26,14 +25,13 @@ type MetricKey = keyof Pick<
 /* ------------------- Helpers ------------------- */
 
 function daysInMonthSydney(date: Date): number {
-    const { year, month } = getSydneyDateParts(date);
-    return new Date(year, month + 1, 0).getDate();
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
 /* ------------------- Core logic ------------------- */
 
 function getMonthDayCumulativeData(
-    data: MetaAdsetData[],
+    data: AdSetMetric[],
     metric: MetricKey,
     maxDay: number
 ): Map<number, number> {
@@ -44,7 +42,7 @@ function getMonthDayCumulativeData(
     );
 
     for (const item of sorted) {
-        const day = getSydneyDateParts(item.date).date;
+        const day = item.date.getDate();
         perDay.set(
             day,
             (perDay.get(day) ?? 0) + Number(item[metric] ?? 0)
@@ -65,8 +63,8 @@ function getMonthDayCumulativeData(
 /* ------------------- Component ------------------- */
 
 interface RunRateChartProps {
-    analytics: MetaAdsetData[];
-    comparisonData?: MetaAdsetData[];
+    analytics: AdSetMetric[];
+    comparisonData?: AdSetMetric[];
     metric: MetricKey;
 }
 
@@ -80,7 +78,7 @@ export function RunRateChart({
     }
 
     const today = new Date();
-    const currentDay = getSydneyDateParts(today).date;
+    const currentDay = today.getDate();
 
     const baseMonthDays = daysInMonthSydney(today);
     const comparisonMonthDays =

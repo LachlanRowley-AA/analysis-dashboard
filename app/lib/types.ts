@@ -1,3 +1,20 @@
+export interface AdSetMetric {
+  date: Date;
+  adsetName: string;
+  reach: number;
+  amountSpent: number;
+  linkClicks: number;
+  landingPageView: number;
+  lead: number;
+  frequency: number;
+  cost_per_lead: number;
+  impressions: number;
+  ctr: number;
+  conversions: number;
+  conversionValue: number;
+  cpm: number;
+}
+
 import { ValueFormat } from "@/lib/formatter";
 
 export interface StatCardProps {
@@ -20,24 +37,7 @@ export interface StatCardProps {
 
 }
 
-export interface MetaAdsetData {
-  date: Date;
-  adsetName: string;
-  reach: number;
-  amountSpent: number;
-  linkClicks: number;
-  landingPageView: number;
-  lead: number;
-  frequency: number;
-  costPerLead: number;
-  impressions: number;
-  ctr: number;
-  conversions: number;
-  conversionValue: number;
-  cpm: number;
-}
-
-export function createBlankMetaAdsetData(adsetName: string, date?: Date): MetaAdsetData {
+export function createBlankMetaAdsetData(adsetName: string, date?: Date): AdSetMetric {
   return {
     date: date ? new Date(date) : new Date(),
     adsetName,
@@ -47,7 +47,7 @@ export function createBlankMetaAdsetData(adsetName: string, date?: Date): MetaAd
     landingPageView: 0,
     lead: 0,
     frequency: 0,
-    costPerLead: 0,
+    cost_per_lead: 0,
     impressions: 0,
     ctr: 0,
     conversions: 0,

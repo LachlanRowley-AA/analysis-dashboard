@@ -1,99 +1,142 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { DateTime } from 'luxon';
+import { GHLData } from '@/app/lib/types';
+import { getGHLDataFromCache, cacheGHLData } from '@/app/lib/cache/redisManager';
 
-const LOCATION_ID = process.env.LEADCONNECTOR_LOCATION_ID!
-const TOKEN = process.env.LEADCONNECTOR_TOKEN!
+const LOCATION_ID = process.env.LEADCONNECTOR_LOCATION_ID!;
+const TOKEN = process.env.LEADCONNECTOR_TOKEN!;
 
-const PIPELINE_ID = 'mdwRTZqohMS3j6UOPAe0'
-const PIPELINE_STAGE_ID = '3f6932c8-c391-4a13-ab7d-8efe4b29823e'
+const PIPELINE_ID = 'mdwRTZqohMS3j6UOPAe0';
+const PIPELINE_STAGE_ID = '3f6932c8-c391-4a13-ab7d-8efe4b29823e';
 
 const CUSTOM_FIELD_IDS: Record<string, string> = {
   adset: '2j4KHgSJLwDR0N2CVjZG',
   ad: '6JfDmY5LXhDc2lDP5vXA',
   dateFunded: '4ZkP43R1IirhstWNcw4E',
+};
+
+/**
+ * Cache read helper
+ */
+async function getCachedData(): Promise<GHLData[] | null> {
+  const cached = await getGHLDataFromCache();
+
+  if (cached) {
+    console.log('GHL cache hit');
+    return cached;
+  }
+
+  console.log('GHL cache miss');
+  return null;
 }
 
-const PAGE_CAP = 50
-
-export async function GET(req: Request) {
-  const APIurl = new URL(req.url);
-  let startDateParam = APIurl.searchParams.get("date") ?? "";
-  if (startDateParam) {
-    const splitDate = startDateParam.split('-');
-    startDateParam = `${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`
-  }
-  try {
-    let page = 1
-    let allOpportunities: any[] = []
-
-    while (page <= PAGE_CAP) {
-      const query = new URLSearchParams({
-        location_id: LOCATION_ID,
-        page: page.toString(),
-        date: startDateParam
-      })
-
-      const url = `https://services.leadconnectorhq.com/opportunities/search?${query}`
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Version: '2021-07-28',
-          Authorization: `Bearer ${TOKEN}`,
+/**
+ * Fetch from LeadConnector API
+ */
+async function fetchFromGHLAPI(): Promise<any[]> {
+  const response = await fetch(
+    'https://services.leadconnectorhq.com/opportunities/search',
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Version: '2021-07-28',
+        Authorization: `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        locationId: LOCATION_ID,
+        limit: 500,
+        page: 0,
+        query: '',
+        additionalDetails: {
+          notes: false,
+          tasks: false,
+          calendarEvents: false,
+          unReadConversations: false,
         },
-        cache: 'no-store',
-      })
+        filters: [
+          {
+            field: 'pipeline_id',
+            operator: 'eq',
+            value: PIPELINE_ID,
+          },
+          {
+            field: 'pipeline_stage_id',
+            operator: 'eq',
+            value: PIPELINE_STAGE_ID,
+          },
+        ],
+      }),
+    }
+  );
 
-      if (!response.ok) {
-        throw new Error(`LeadConnector error: ${response.status}`)
-      }
+  if (!response.ok) {
+    throw new Error(`LeadConnector error: ${response.status}`);
+  }
 
-      const jsonData = await response.json()
-      const opportunities = jsonData.opportunities ?? []
+  const json = await response.json();
+  return json.opportunities ?? [];
+}
 
-      if (opportunities.length === 0) {
-        break
-      }
+/**
+ * Main API handler
+ */
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const startDateParam = url.searchParams.get('date');
 
-      allOpportunities.push(...opportunities)
-      page++
+    console.log('Request date param:', startDateParam);
+
+    // 1. Try cache first
+    const cached = await getCachedData();
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
-    const rows = allOpportunities.map((opp: any) => {
-      const row: Record<string, any> = {
-        name: opp.name,
-        value: opp.monetaryValue,
-        stageId: opp.pipelineStageId,
-        funded: opp.lastStageChangeAt,
-        dateCreated: opp.createdAt,
-        owner: opp.assignedTo
-      }
+    // 2. Fetch fresh data
+    const opportunities = await fetchFromGHLAPI();
 
-      const customLookup: Record<string, any> = {}
-
+    const rows: GHLData[] = opportunities.map((opp: any): GHLData => {
+      const customLookup: Record<string, any> = {};
       for (const f of opp.customFields ?? []) {
         if (f.fieldValueString) {
-          customLookup[f.id] = f.fieldValueString
-        } else if (f.fieldValueDate) {
-          customLookup[f.id] = new Date(f.fieldValueDate)
+          customLookup[f.id] = f.fieldValueString;
+        }
+
+        if (f.fieldValueDate) {
+          const dt = DateTime
+            .fromMillis(Number(f.fieldValueDate), { zone: 'utc' })
+            .setZone('Australia/Sydney');
+
+          customLookup[f.id] = dt.toFormat('yyyy-MM-dd');
         }
       }
 
-      for (const [colName, fieldId] of Object.entries(CUSTOM_FIELD_IDS)) {
-        row[colName] = customLookup[fieldId] ?? null
-      }
+      return {
+        name: opp.name,
+        value: opp.monetaryValue,
+        stageId: opp.pipelineStageId,
+        dateCreated: opp.createdAt,
+        owner: opp.assignedTo,
 
-      return row
-    })
+        ad: customLookup[CUSTOM_FIELD_IDS.ad] ?? null,
+        adset: customLookup[CUSTOM_FIELD_IDS.adset] ?? null,
+        dateFunded: customLookup[CUSTOM_FIELD_IDS.dateFunded] ?? null,
+      };
+    });
 
-    return NextResponse.json({
-      count: rows.length,
-      data: rows,
-    })
+    // 3. Cache result (IMPORTANT: await)
+    await cacheGHLData(rows);
+
+    return NextResponse.json(rows);
   } catch (error: any) {
+    console.error('GHL API error:', error);
+
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message || 'An unknown error occurred' },
       { status: 500 }
-    )
+    );
   }
 }

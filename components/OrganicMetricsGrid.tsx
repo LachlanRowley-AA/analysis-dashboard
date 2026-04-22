@@ -73,7 +73,7 @@ function getSameDayChange(
   };
 }
 
-export const MetricsGrid: React.FC<MetricsGridProps> = ({
+export const OrganicMetricsGrid: React.FC<MetricsGridProps> = ({
   data,
   comparison,
   showComparison = false,
@@ -135,7 +135,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
     return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
   };
 
-  const colSpan = useMatches({ base: 12, sm: 6, md: 4, lg: 3 });
+  const colSpan = useMatches({ base: 12, sm: 6, md: 4, lg: 4 });
 
   const graph =
     dataArr && showMetric !== '' ? (
@@ -196,23 +196,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
     return Math.max(scaled, 0).toFixed(2);
   }, [comparison, dataArr, sameDayValues, roas, deltaEfficiency]);
 
-  const spendChangePerDay =
-    currentDayOfMonth > 0
-      ? ((sameDayChanges.amountSpent.absolute ?? 0) / currentDayOfMonth).toFixed(2)
-      : '0.00';
-
   const StatCards = [
-    <StatCard
-      key="cpl"
-      icon={<IconMessage size={28} />}
-      title="Cost Per Lead"
-      value={cpl != null ? `$${numberFormatter.format(cpl)}` : 'No leads'}
-      change={cpl != null ? calculateChange(cpl, comparisonCpl, true) : undefined}
-      priorValue={comparisonCpl != null ? `$${numberFormatter.format(comparisonCpl)}` : undefined}
-      color="#20c997"
-      lowerBetter
-      format="currency"
-    />,
     <StatCard
       key="leads"
       icon={<IconUserPlus size={28} />}
@@ -225,23 +209,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       active={showMetric === 'lead'}
       sameDayChange={sameDayChanges.lead}
       format="number"
-    />,
-    <StatCard
-      key="cta"
-      icon={<IconTrendingUp size={28} />}
-      title="Cost Per Acquisition"
-      value={cpa != null ? `$${numberFormatter.format(cpa)}` : 'No conversions'}
-      change={cpa != null ? calculateChange(cpa, comparisonCpa, true) : undefined}
-      lowerBetter
-      color="#20c997"
-      priorValue={
-        comparisonCpa != null
-          ? `$${numberFormatter.format(comparisonCpa)}`
-          : comparison
-          ? 'No conversions'
-          : undefined
-      }
-      format="currency"
     />,
     <StatCard
       key="conversionValue"
@@ -258,64 +225,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       active={showMetric === 'conversionValue'}
       sameDayChange={sameDayChanges.conversionValue}
       format="currency"
-    />,
-    <StatCard
-      key="cpm"
-      icon={<IconPercentage size={28} />}
-      title="Cost Per Mille"
-      value={`$${numberFormatter.format(data.cpm)}`}
-      change={calculateChange(data.cpm, comparison?.cpm, true)}
-      priorValue={comparison ? `$${numberFormatter.format(comparison.cpm)}` : undefined}
-      color="#20c997"
-      lowerBetter
-      format="currency"
-    />,
-    <StatCard
-      key="amountSpent"
-      icon={<IconChartLine size={28} />}
-      title="Amount Spent"
-      value={`$${numberFormatter.format(data.amountSpent)}`}
-      change={calculateChange(data.amountSpent, comparison?.amountSpent, true)}
-      color="#20c997"
-      priorValue={
-        comparison ? `$${numberFormatter.format(comparison.amountSpent)}` : undefined
-      }
-      neutral
-      onClick={() => setShowMetric('amountSpent')}
-      active={showMetric === 'amountSpent'}
-      sameDayChange={sameDayChanges.amountSpent}
-      format="currency"
-    />,
-    <StatCard
-      key="ctr"
-      icon={<IconCoin size={28} />}
-      title="Click Through Rate"
-      value={`${numberFormatter.format(data.ctr)}%`}
-      change={calculateChange(data.ctr, comparison?.ctr)}
-      color="#20c997"
-      priorValue={comparison ? `${numberFormatter.format(comparison.ctr)}%` : undefined}
-      format="percent"
-    />,
-    <StatCard
-      key="frequency"
-      icon={<IconUsers size={28} />}
-      title="Frequency"
-      value={data.frequency.toLocaleString()}
-      change={calculateChange(data.frequency, comparison?.frequency)}
-      priorValue={comparison?.frequency.toLocaleString()}
-      color="#20c997"
-      lowerBetter
-      format="number"
-    />,
-    <StatCard
-      key="roas"
-      icon={<IconUsers size={28} />}
-      title="Return on Ad Spend"
-      value={roas.toFixed(2)}
-      change={calculateChange(roas, comparisonRoas)}
-      priorValue={comparisonRoas?.toLocaleString()}
-      color="#20c997"
-      format="number"
     />,
     // <LTVGrid
     //   key="ltv"
@@ -344,28 +253,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       sameDayChange={sameDayChanges.conversions}
       format="number"
     />,
-    // <StatCard
-    //   key="delta"
-    //   icon={<IconUsers size={28} />}
-    //   title="Adspend Change Efficiency"
-    //   value={deltaEfficiency != null ? `${deltaEfficiency}%` : 'N/A'}
-    //   color="#20c997"
-    //   format="percent"
-    //   priorTextStart="of the expected leads from"
-    //   priorValue={
-    //     dataArr && dataArr.length > 0
-    //       ? `$${spendChangePerDay}/day change`
-    //       : undefined
-    //   }
-    // />,
-    // <StatCard
-    //   key="projectedRoas"
-    //   icon={<IconChartLine size={28} />}
-    //   title="Adspend Change Projected ROAS"
-    //   value={projectedRoas}
-    //   color="#20c997"
-    //   format="number"
-    // />,
   ];
 
   const CARDS_PER_ROW = 12 / colSpan;
