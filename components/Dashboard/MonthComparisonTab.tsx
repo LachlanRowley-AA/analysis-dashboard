@@ -1,38 +1,37 @@
 import { Stack, Grid, Title, Select } from '@mantine/core';
 import { MetricsGrid } from '../MetricsGrid';
-import { useAnalytics } from '../DataStorageContext';
 import { useState } from 'react';
-import { mergeAdsetData } from '@/lib/utils/calculateUtils';
-import { getSydneyDateParts } from '@/lib/utils/aedt';
-
+import { useMetaData } from '@/app/context/MetaContextProvider';
+import { mergeAdsetData } from '@/utils/calculateUtils';
+  
 export const MonthComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  let data = useAnalytics().metaData;
-  const { month: sydneyMonth } = getSydneyDateParts(new Date());
-  const previousMonth = sydneyMonth === 0 ? 11 : sydneyMonth - 1;
+  const { data: rawData, loading } = useMetaData();
+  const date = new Date();
+  const month = date.getMonth();
+  const previousMonth = month === 0 ? 11 : month - 1;
 
-  //Filter out organic leads
-  data = data.filter(item => item.adsetName !== "Organic");
-
+  if(!rawData) return <p>No data available</p>;
+  let data = rawData.filter(item => item.adsetName !== "Organic");
   let adsetNames = Array.from(new Set(data.map(item => item.adsetName || "")));
   adsetNames.unshift("All");
 
-  let filter = selectedAdset && selectedAdset != 'All' ?
-    data.filter(item => item.adsetName === selectedAdset) : data;
-  const previousMonthData = filter.filter(item => getSydneyDateParts(item.date).month === previousMonth);
-  const lastMonthData = mergeAdsetData(previousMonthData, 'Last Month');
+  let filter = selectedAdset && selectedAdset !== 'All'
+    ? data.filter(item => item.adsetName === selectedAdset)
+    : data;
 
-  const currentMonthData = filter.filter(item => getSydneyDateParts(item.date).month === sydneyMonth);
-  const monthData = mergeAdsetData(currentMonthData, 'Current Month');
+  console.log(filter);
+  const previousMonthData = filter.filter(item => (item.date.getMonth()) === previousMonth);
+  const currentMonthData = filter.filter(item => (item.date.getMonth()) === month);
 
-
-
+  const previousMonthMerged = mergeAdsetData(previousMonthData, "Previous Month");
+  const currentMonthMerged = mergeAdsetData(currentMonthData, "Current Month")
   return (
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md" c='white'>This Month</Title>
         <Select
-          data={adsetNames.map(name => ({ value: name, label: name })) || ""}
+          data={adsetNames.map(name => ({ value: name, label: name }))}
           value={selectedAdset}
           onChange={setSelectedAdset}
           py='md'
@@ -44,8 +43,12 @@ export const MonthComparisonTab = () => {
             },
           }}
         />
-        <MetricsGrid data={monthData} comparison={lastMonthData} dataArr={currentMonthData} comparisonArr={previousMonthData} />
-        {/* <LTVGrid data={currentMonthData} comparison={previousMonthData} showComparison={true} /> */}
+        <MetricsGrid
+          data={currentMonthMerged}
+          comparison={previousMonthMerged}
+          dataArr={currentMonthData}
+          comparisonArr={previousMonthData}
+        />
       </div>
     </Stack>
   );

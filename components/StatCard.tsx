@@ -1,13 +1,13 @@
 import { Paper, Text, Group, Badge, rgba, Stack } from '@mantine/core';
 import { useState } from 'react';
-import { StatCardProps } from '@/types/analytics';
+import { StatCardProps } from '@/app/lib/types';
 import {
   IconArrowBigUpFilled,
   IconArrowBigDownFilled,
   IconChartAreaLineFilled,
   IconEqual
 } from '@tabler/icons-react';
-import { formatValue } from '@/lib/formatter';
+import { formatValue } from '@/utils/formatter';
 
 export const StatCard: React.FC<StatCardProps> = ({
   icon,
