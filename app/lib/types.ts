@@ -15,7 +15,7 @@ export interface AdSetMetric {
   cpm: number;
 }
 
-import { ValueFormat } from "@/lib/formatter";
+import { ValueFormat } from "@/utils/formatter";
 
 export interface StatCardProps {
   icon: React.ReactNode;
