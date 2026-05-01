@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { AdSetMetric, GHLData } from "../lib/types";
 import { hydrateAdSetMetrics } from "@/utils/hydrate";
 import { GHL_TO_ATO_MAPPING } from "@/utils/constants/analytics";
@@ -18,9 +18,15 @@ export function MetaDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Stable date references — computed once, not re-created on re-render
+  const dateTodayRef = useRef<Date>(new Date());
+  const startDateRef = useRef<Date>(
+    new Date(dateTodayRef.current.getFullYear(), dateTodayRef.current.getMonth() - 2, 1)
+  );
+
   useEffect(() => {
-    const dateToday = new Date();
-    const startDate = new Date(dateToday.getFullYear(), dateToday.getMonth() - 1, 1);
+    const dateToday = dateTodayRef.current;
+    const startDate = startDateRef.current;
 
     const getMetaData = async (): Promise<AdSetMetric[] | null> => {
       try {
@@ -35,7 +41,7 @@ export function MetaDataProvider({ children }: { children: ReactNode }) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
         return null;
       }
-    }
+    };
 
     const getGHLData = async (): Promise<GHLData[]> => {
       try {
@@ -47,43 +53,76 @@ export function MetaDataProvider({ children }: { children: ReactNode }) {
         console.error("Error fetching GHL data:", err instanceof Error ? err.message : err);
         return [];
       }
-    }
+    };
 
     const createOrganicAdsets = (metaData: AdSetMetric[]): AdSetMetric[] => {
-      const startDate = new Date(dateToday.getFullYear(), dateToday.getMonth() - 1, 1);
-      const endDate = dateToday;
-      const organicAdsets: AdSetMetric[] = metaData ? metaData : [];
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      // Spread into a new array to avoid mutating the original
+      const organicAdsets: AdSetMetric[] = [...metaData];
+      for (let d = new Date(startDate); d <= dateToday; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
         organicAdsets.push(createBlankMetaAdsetData('Organic', new Date(d)));
       }
       return organicAdsets;
-    }
+    };
 
     const appendGHLData = (ghlData: GHLData[], metaData: AdSetMetric[]): AdSetMetric[] => {
       for (const ghlEntry of ghlData) {
-        console.log(`Processing GHL entry: ${ghlEntry.name} with value ${ghlEntry.value} and date ${ghlEntry.dateFunded}`);
+        // console.log(`Processing GHL entry: ${ghlEntry.name} with value ${ghlEntry.value} and date ${ghlEntry.dateFunded}`);
+        const isOrganic = ghlEntry.adset === "Organic";
         const mappedAdsetName = GHL_TO_ATO_MAPPING[ghlEntry.adset];
+
         if (mappedAdsetName) {
-          const metaEntry = metaData.find(entry => entry.adsetName === mappedAdsetName &&
-            entry.date.toISOString().split('T')[0] === ghlEntry.dateFunded);
-          if (metaEntry) {
-            console.log(`Found matching Meta entry for GHL entry "${ghlEntry.name}": adset "${metaEntry.adsetName}" on date ${metaEntry.date}`);
-            metaEntry.conversions += 1;
-            metaEntry.conversionValue += ghlEntry.value;
+          // --- Funded logic (dateFunded) ---
+          if (ghlEntry.dateFunded) {
+            const fundedEntry = metaData.find(entry =>
+              entry.adsetName === mappedAdsetName &&
+              entry.date.toISOString().split('T')[0] === ghlEntry.dateFunded.split('T')[0]
+            );
+            console.log(`Looking for Meta entry with adset "${mappedAdsetName}" and date ${ghlEntry.dateFunded.split('T')[0]} to match GHL entry "${ghlEntry.name}"`);
+
+            if (fundedEntry) {
+              // console.log(`Found matching Meta entry for GHL entry "${ghlEntry.name}": adset "${fundedEntry.adsetName}" on date ${fundedEntry.date}`);
+              if (!isOrganic) {
+                if (ghlEntry.value > 0) {
+                  fundedEntry.conversions += 1;
+                  fundedEntry.conversionValue += ghlEntry.value;
+                } else {
+                  // console.log(`GHL entry "${ghlEntry.name}" has non-positive value ${ghlEntry.value}, skipping conversion increment`);
+                }
+              } else {
+                // Organic: increment funded count regardless of value (as long as dateFunded is not null)
+                fundedEntry.conversions += 1;
+                fundedEntry.conversionValue += ghlEntry.value;
+              }
+            } else {
+              // console.log(`No matching Meta entry found for GHL entry "${ghlEntry.name}" on date ${ghlEntry.dateFunded}, adset "${ghlEntry.adset}"`);
+            }
           }
-          else {
-            console.log(`No matching Meta entry found for GHL entry "${ghlEntry.name}" on date ${ghlEntry.dateFunded}, adset "${ghlEntry.adset}`);
+
+          // --- Lead logic (dateCreated, organic only) ---
+          if (isOrganic && ghlEntry.dateCreated) {
+            const leadEntry = metaData.find(entry =>
+              entry.adsetName === mappedAdsetName &&
+              entry.date.toISOString().split('T')[0] === ghlEntry.dateCreated.split('T')[0]
+            );
+
+            if (leadEntry) {
+              console.log(`Incrementing lead count for organic entry "${ghlEntry.name}" on dateCreated ${ghlEntry.dateCreated}`);
+              leadEntry.lead += 1;
+            } else {
+              console.log(`No matching Meta entry found for organic lead "${ghlEntry.name}" on dateCreated ${ghlEntry.dateCreated}, adset "${ghlEntry.adset}"`);
+            }
           }
         }
       }
+
       console.log("Meta data after appending GHL data:", metaData);
       return metaData;
-    }
+    };
 
     const getData = async (): Promise<void> => {
       try {
         const metaData = await getMetaData();
-        if(!metaData) {
+        if (!metaData) {
           setError("Failed to fetch Meta data");
           return;
         }

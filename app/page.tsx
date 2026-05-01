@@ -5,6 +5,8 @@ import { Container, Group, Title, Button, Tabs, Loader, Text, Stack, Center, Pop
 import { MonthComparisonTab } from '../components/Dashboard/MonthComparisonTab';
 import { useDisclosure } from '@mantine/hooks';
 import { OrganicTab } from "@/components/Dashboard/OrganicTab";
+import { PriorMonthComparisonTab } from "@/components/Dashboard/PriorMonthComparisonTab";
+import { PriorOrganicTab } from "@/components/Dashboard/PriorOrganicTab";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
@@ -63,9 +65,11 @@ export default function Dashboard() {
       <Tabs value={activeTab} onChange={setActiveTab} c='#cf0072'>
         <Tabs.List mb="xl" c='#01E194'>
           <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
+          <Tabs.Tab value="priorMonthComparison">Last Month vs Prior Month</Tabs.Tab>
           {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
           <Tabs.Tab value="total">Total</Tabs.Tab> */}
           <Tabs.Tab value="organic">Organic</Tabs.Tab>
+          <Tabs.Tab value="priorOrganic">Prior Organic</Tabs.Tab>
           {/* <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
           <Tabs.Tab value="projection">Project</Tabs.Tab> */}
         </Tabs.List>
@@ -75,6 +79,12 @@ export default function Dashboard() {
             <MonthComparisonTab
             />
           )}
+        </Tabs.Panel>
+        <Tabs.Panel value="priorMonthComparison">
+          {<PriorMonthComparisonTab />}
+        </Tabs.Panel>
+        <Tabs.Panel value="priorOrganic">
+          {<PriorOrganicTab />}
         </Tabs.Panel>
         {/* <Tabs.Panel value="categoryComparison">
           {<CategoryComparisonTab />}
