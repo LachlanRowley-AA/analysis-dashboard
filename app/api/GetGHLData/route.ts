@@ -40,7 +40,7 @@ async function fetchFromGHLAPI(): Promise<any[]> {
       method: 'POST',
       headers: {
         Accept: 'application/json',
-        Version: '2021-07-28',
+        Version: '2023-02-21',
         Authorization: `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
       },
@@ -62,11 +62,20 @@ async function fetchFromGHLAPI(): Promise<any[]> {
             value: PIPELINE_ID,
           },
           {
-            field: 'pipeline_stage_id',
-            operator: 'eq',
-            value: PIPELINE_STAGE_ID,
-          },
-        ],
+            group: "OR",
+            filters: [
+              {
+                field: 'pipeline_stage_id',
+                operator: 'eq',
+                value: PIPELINE_STAGE_ID,
+              },
+              {
+                field: "custom_fields.2j4KHgSJLwDR0N2CVjZG",
+                operator: "eq",
+                value: "Organic",
+              },
+            ]
+          }],
       }),
     }
   );
