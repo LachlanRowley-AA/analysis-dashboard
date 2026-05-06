@@ -1,3 +1,4 @@
+
 import Redis from 'ioredis';
 import fs from "fs";
 import path from "path";
@@ -107,6 +108,12 @@ export async function getGHLDataFromCache(): Promise<GHLData[] | null> {
 
     return data.map(item => JSON.parse(item) as GHLData);
 }
+
+export async function clearCache(): Promise<void> {
+    await redis.del('metaAdsetData');
+    await redis.del('ghlData');
+}
+
 // export async function updateCacheData(data: MetaAdsetData[], fullData: MetaAdsetData[], startDate: Date): Promise<void> {
 //     // Remove the elements from the same day (Australia/Sydney) onward
 //     const startOfUpdateDate = startOfDayInSydney(startDate);
