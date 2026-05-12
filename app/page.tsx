@@ -7,11 +7,12 @@ import { useDisclosure } from '@mantine/hooks';
 import { OrganicTab } from "@/components/Dashboard/OrganicTab";
 import { PriorMonthComparisonTab } from "@/components/Dashboard/PriorMonthComparisonTab";
 import { PriorOrganicTab } from "@/components/Dashboard/PriorOrganicTab";
+import { TotalTab } from "@/components/Dashboard/TotalTab";
 import { clearAllCache } from "./lib/cache/redisActions";
+import { TotalOrganicTab } from "@/components/Dashboard/TotalOrganicTab";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
-  const [buttonClicked, setButtonClicked] = useState(false);
 
   const { loading, error, refetch, statusMessage } = useMetaData();
 
@@ -63,12 +64,13 @@ export default function Dashboard() {
 
       <Tabs value={activeTab} onChange={setActiveTab} c='#cf0072'>
         <Tabs.List mb="xl" c='#01E194'>
-          <Tabs.Tab value="monthComparison">This Month vs Last Month</Tabs.Tab>
-          <Tabs.Tab value="priorMonthComparison">Last Month vs Prior Month</Tabs.Tab>
-          {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab>
-          <Tabs.Tab value="total">Total</Tabs.Tab> */}
+          <Tabs.Tab value="monthComparison">This Quarter vs Last</Tabs.Tab>
+          {/* <Tabs.Tab value="priorMonthComparison">Last Quarter vs Prior</Tabs.Tab> */}
+          {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab> */}
+          <Tabs.Tab value="total">Total</Tabs.Tab>
           <Tabs.Tab value="organic">Organic</Tabs.Tab>
-          <Tabs.Tab value="priorOrganic">Prior Organic</Tabs.Tab>
+          {/* <Tabs.Tab value="priorOrganic">Prior Organic</Tabs.Tab> */}
+          <Tabs.Tab value="totalOrganic">Total Organic</Tabs.Tab>
           {/* <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
           <Tabs.Tab value="projection">Project</Tabs.Tab> */}
         </Tabs.List>
@@ -85,13 +87,17 @@ export default function Dashboard() {
         <Tabs.Panel value="priorOrganic">
           {<PriorOrganicTab />}
         </Tabs.Panel>
+        <Tabs.Panel value="total">
+          {<TotalTab />}
+        </Tabs.Panel>
+        <Tabs.Panel value="totalOrganic">
+          {<TotalOrganicTab />}
+        </Tabs.Panel>
+
         {/* <Tabs.Panel value="categoryComparison">
           {<CategoryComparisonTab />}
         </Tabs.Panel>
 
-        <Tabs.Panel value="total">
-          {<TotalTab />}
-        </Tabs.Panel>
 
         <Tabs.Panel value="ghl">
           {<GHLTab />}

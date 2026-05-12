@@ -94,9 +94,6 @@ async function fetchFromGHLAPI(): Promise<any[]> {
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const startDateParam = url.searchParams.get('date');
-
-    console.log('Request date param:', startDateParam);
 
     // 1. Try cache first
     const cached = await getCachedData();
@@ -136,7 +133,7 @@ export async function GET(req: Request) {
       };
     });
 
-    // 3. Cache result (IMPORTANT: await)
+    // 3. Cache result
     await cacheGHLData(rows);
 
     return NextResponse.json(rows);

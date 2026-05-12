@@ -1,12 +1,23 @@
 'use client';
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
-import { AdSetMetric, GHLData } from "../lib/types";
-import { hydrateAdSetMetrics } from "@/utils/hydrate";
-import { GHL_TO_ATO_MAPPING } from "@/utils/constants/analytics";
-import { createBlankMetaAdsetData } from "../lib/types";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from 'react';
+
+import { AdSetMetric, GHLData } from '../lib/types';
+import { hydrateAdSetMetrics } from '@/utils/hydrate';
+import { GHL_TO_ATO_MAPPING } from '@/utils/constants/analytics';
+import { createBlankMetaAdsetData } from '../lib/types';
 
 interface MetaDataContextType {
   data: AdSetMetric[] | null;
+  allData: AdSetMetric[] | null;
   loading: boolean;
   error: string | null;
   statusMessage: string | null;
@@ -15,133 +26,434 @@ interface MetaDataContextType {
 
 const MetaDataContext = createContext<MetaDataContextType | null>(null);
 
-export function MetaDataProvider({ children }: { children: ReactNode }) {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getStartDate(today: Date): Date {
+  return new Date(today.getFullYear(), today.getMonth() - 6, 1);
+}
+
+function toDateString(date: Date | string): string {
+  return new Date(date).toISOString().split('T')[0];
+}
+
+/**
+ * Given a target date string and a sorted ascending list of week-boundary date
+ * strings for a specific adset, return the largest bucket date that is <=
+ * target (i.e. the weekly bucket this day falls into).
+ */
+function findNearestWeekBucket(
+  targetDate: string,
+  sortedBuckets: string[]
+): string | null {
+  let result: string | null = null;
+
+  for (const bucket of sortedBuckets) {
+    if (bucket <= targetDate) result = bucket;
+    else break;
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// API fetchers
+// ---------------------------------------------------------------------------
+
+async function fetchMetaData(
+  startDate: Date,
+  endDate: Date
+): Promise<AdSetMetric[]> {
+  const url =
+    `/api/GetMetaDataQuarterly` +
+    `?startDateParam=${toDateString(startDate)}` +
+    `&endDateParam=${toDateString(endDate)}` +
+    `&increment=7`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Meta API error: ${response.status}`);
+  }
+
+  const json: AdSetMetric[] = await response.json();
+
+  return hydrateAdSetMetrics(json);
+}
+
+async function fetchMetaDataAll(): Promise<AdSetMetric[]> {
+  const response = await fetch(`/api/GetMetaDataAll`);
+
+  if (!response.ok) {
+    throw new Error(`Meta All API error: ${response.status}`);
+  }
+
+  const json: AdSetMetric[] = await response.json();
+
+  return hydrateAdSetMetrics(json);
+}
+
+async function fetchGHLData(): Promise<GHLData[]> {
+  const response = await fetch(`/api/GetGHLData`);
+
+  if (!response.ok) {
+    throw new Error(`GHL API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// ---------------------------------------------------------------------------
+// Data transforms
+// ---------------------------------------------------------------------------
+
+/** Append one organic AdSetMetric per day in [startDate, endDate]. */
+function appendOrganicAdsets(
+  adsets: AdSetMetric[],
+  startDate: Date,
+  endDate: Date
+): AdSetMetric[] {
+  const result = [...adsets];
+
+  for (
+    let d = new Date(startDate);
+    d <= endDate;
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+  ) {
+    result.push(createBlankMetaAdsetData('Organic', new Date(d)));
+  }
+
+  return result;
+}
+
+/**
+ * Merge GHL lead/conversion data into the weekly Meta adset list.
+ */
+function mergeGHLData(
+  ghlData: GHLData[],
+  adsets: AdSetMetric[]
+): AdSetMetric[] {
+  // -------------------------------------------------------------------------
+  // Build index structures
+  // -------------------------------------------------------------------------
+
+  // "adsetName|dateString" -> index in adsets[]
+  const indexMap = new Map<string, number>();
+
+  // adsetName -> sorted ascending list of week bucket date strings
+  const bucketsByAdset = new Map<string, string[]>();
+
+  adsets.forEach((entry, i) => {
+    const dateStr = toDateString(entry.date);
+
+    indexMap.set(`${entry.adsetName}|${dateStr}`, i);
+
+    if (!bucketsByAdset.has(entry.adsetName)) {
+      bucketsByAdset.set(entry.adsetName, []);
+    }
+
+    bucketsByAdset.get(entry.adsetName)!.push(dateStr);
+  });
+
+  // Sort buckets
+  for (const buckets of bucketsByAdset.values()) {
+    buckets.sort();
+  }
+
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+
+  function resolveEntry(
+    adsetName: string,
+    dateStr: string
+  ): AdSetMetric | null {
+    // Exact match
+    const exactIdx = indexMap.get(`${adsetName}|${dateStr}`);
+
+    if (exactIdx !== undefined) {
+      return adsets[exactIdx];
+    }
+
+    // Snap backwards to nearest week bucket
+    const buckets = bucketsByAdset.get(adsetName);
+
+    if (buckets) {
+      const nearest = findNearestWeekBucket(dateStr, buckets);
+
+      if (nearest) {
+        const snapIdx = indexMap.get(`${adsetName}|${nearest}`);
+
+        if (snapIdx !== undefined) {
+          return adsets[snapIdx];
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function createFallbackEntry(
+    adsetName: string,
+    dateStr: string
+  ): AdSetMetric {
+    const newEntry = createBlankMetaAdsetData(
+      adsetName,
+      new Date(dateStr)
+    );
+
+    const newIdx = adsets.length;
+
+    adsets.push(newEntry);
+
+    indexMap.set(`${adsetName}|${dateStr}`, newIdx);
+
+    if (!bucketsByAdset.has(adsetName)) {
+      bucketsByAdset.set(adsetName, []);
+    }
+
+    const buckets = bucketsByAdset.get(adsetName)!;
+
+    const insertAt = buckets.findIndex((b) => b > dateStr);
+
+    if (insertAt === -1) {
+      buckets.push(dateStr);
+    } else {
+      buckets.splice(insertAt, 0, dateStr);
+    }
+
+    return newEntry;
+  }
+
+  // -------------------------------------------------------------------------
+  // Main merge loop
+  // -------------------------------------------------------------------------
+
+  for (const ghlEntry of ghlData) {
+    const isOrganic = ghlEntry.adset === 'Organic';
+
+    const mappedAdsetName =
+      GHL_TO_ATO_MAPPING[ghlEntry.adset];
+
+    const adsetName = mappedAdsetName ?? ghlEntry.adset;
+
+    // Funded conversion
+    if (!isOrganic && ghlEntry.dateFunded) {
+      const dateStr = toDateString(ghlEntry.dateFunded);
+
+      const entry =
+        resolveEntry(adsetName, dateStr) ??
+        createFallbackEntry(adsetName, dateStr);
+
+      entry.conversions += 1;
+      entry.conversionValue += ghlEntry.value;
+    }
+
+    // Organic lead
+    if (isOrganic && ghlEntry.dateCreated) {
+      const dateStr = toDateString(ghlEntry.dateCreated);
+      const fundedDateStr = ghlEntry.dateFunded ? toDateString(ghlEntry.dateFunded) : undefined;
+
+      const entry =
+        resolveEntry(adsetName, dateStr) ??
+        createFallbackEntry(adsetName, dateStr);
+      entry.lead += 1;
+
+      if (fundedDateStr) {
+        const fundedEntry =
+          resolveEntry(adsetName, fundedDateStr) ??
+          createFallbackEntry(adsetName, fundedDateStr);
+        fundedEntry.conversions += 1;
+        fundedEntry.conversionValue += ghlEntry.value;
+      }
+    }
+  }
+
+  return adsets;
+}
+
+/**
+ * Merge GHL data into aggregated adset rows returned by /GetMetaDataAll
+ *
+ * Since there is only ONE entry per adset, we simply accumulate all
+ * matching GHL values into that single entry.
+ */
+function mergeGHLDataAll(
+  ghlData: GHLData[],
+  adsets: AdSetMetric[]
+): AdSetMetric[] {
+  const adsetMap = new Map<string, AdSetMetric>();
+
+  for (const adset of adsets) {
+    adsetMap.set(adset.adsetName, adset);
+  }
+
+  for (const ghlEntry of ghlData) {
+    const isOrganic = ghlEntry.adset === 'Organic';
+
+    const mappedAdsetName =
+      GHL_TO_ATO_MAPPING[ghlEntry.adset];
+
+    const adsetName = mappedAdsetName ?? ghlEntry.adset;
+
+    let entry = adsetMap.get(adsetName);
+
+    // Create fallback entry if missing
+    if (!entry) {
+      entry = createBlankMetaAdsetData(
+        adsetName,
+        new Date()
+      );
+
+      adsets.push(entry);
+      adsetMap.set(adsetName, entry);
+    }
+
+    // Funded conversions
+    if (!isOrganic && ghlEntry.dateFunded) {
+      entry.conversions += 1;
+      entry.conversionValue += ghlEntry.value;
+    }
+
+    // Organic leads
+    if (isOrganic && ghlEntry.dateCreated) {
+      entry.lead += 1;
+      if (ghlEntry.dateFunded) {
+        entry.conversions += 1;
+        entry.conversionValue += ghlEntry.value;
+      }
+    }
+  }
+
+  return adsets;
+}
+
+// ---------------------------------------------------------------------------
+// Context & Provider
+// ---------------------------------------------------------------------------
+
+export function MetaDataProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [data, setData] = useState<AdSetMetric[] | null>(null);
+  const [allData, setAllData] = useState<AdSetMetric[] | null>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
+
   const [error, setError] = useState<string | null>(null);
+
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const dateTodayRef = useRef<Date>(new Date());
+  const todayRef = useRef<Date>(new Date());
+
   const startDateRef = useRef<Date>(
-    new Date(dateTodayRef.current.getFullYear(), dateTodayRef.current.getMonth() - 2, 1)
+    getStartDate(todayRef.current)
   );
 
-  const getMetaData = async (startDate: Date, dateToday: Date): Promise<AdSetMetric[] | null> => {
-    try {
-      const response = await fetch(
-        `/api/GetMetaData?startDateParam=${startDate.toISOString().split('T')[0]}&endDateParam=${dateToday.toISOString().split('T')[0]}&increment=1`
-      );
-      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-      const json: AdSetMetric[] = await response.json();
-      return hydrateAdSetMetrics(json);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
-      return null;
-    }
-  };
+  const getData = useCallback(async (): Promise<void> => {
+    const today = todayRef.current;
 
-  const getGHLData = async (): Promise<GHLData[]> => {
-    try {
-      const response = await fetch(`/api/GetGHLData`);
-      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-      return await response.json();
-    } catch (err) {
-      console.error("Error fetching GHL data:", err instanceof Error ? err.message : err);
-      return [];
-    }
-  };
-
-  const createOrganicAdsets = (metaData: AdSetMetric[], startDate: Date, dateToday: Date): AdSetMetric[] => {
-    const organicAdsets: AdSetMetric[] = [...metaData];
-    for (let d = new Date(startDate); d <= dateToday; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
-      organicAdsets.push(createBlankMetaAdsetData('Organic', new Date(d)));
-    }
-    return organicAdsets;
-  };
-
-  const appendGHLData = (ghlData: GHLData[], metaData: AdSetMetric[]): AdSetMetric[] => {
-    for (const ghlEntry of ghlData) {
-      const isOrganic = ghlEntry.adset === "Organic";
-      const mappedAdsetName = GHL_TO_ATO_MAPPING[ghlEntry.adset];
-
-      if (mappedAdsetName) {
-        if (ghlEntry.dateFunded) {
-          const fundedEntry = metaData.find(entry =>
-            entry.adsetName === mappedAdsetName &&
-            entry.date.toISOString().split('T')[0] === ghlEntry.dateFunded.split('T')[0]
-          );
-
-          if (fundedEntry) {
-            if (!isOrganic) {
-              if (ghlEntry.value > 0) {
-                fundedEntry.conversions += 1;
-                fundedEntry.conversionValue += ghlEntry.value;
-              }
-            } else {
-              fundedEntry.conversions += 1;
-              fundedEntry.conversionValue += ghlEntry.value;
-            }
-          }
-        }
-
-        if (isOrganic && ghlEntry.dateCreated) {
-          const leadEntry = metaData.find(entry =>
-            entry.adsetName === mappedAdsetName &&
-            entry.date.toISOString().split('T')[0] === ghlEntry.dateCreated.split('T')[0]
-          );
-
-          if (leadEntry) {
-            leadEntry.lead += 1;
-          }
-        }
-      }
-    }
-
-    return metaData;
-  };
-
-  const getData = async (): Promise<void> => {
-    const dateToday = dateTodayRef.current;
     const startDate = startDateRef.current;
 
+    setLoading(true);
+    setError(null);
+    setStatusMessage(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      // ---------------------------------------------------------------------
+      // Fetch Meta weekly data
+      // ---------------------------------------------------------------------
 
-      setStatusMessage("Fetching Meta data...");
-      const metaData = await getMetaData(startDate, dateToday);
-      if (!metaData) {
-        setError("Failed to fetch Meta data");
-        return;
-      }
+      setStatusMessage('Fetching Meta data...');
 
-      setStatusMessage("Building adsets...");
-      const fullAdsets = createOrganicAdsets(metaData, startDate, dateToday);
+      const metaData = await fetchMetaData(
+        startDate,
+        today
+      );
 
-      setStatusMessage("Fetching GHL data...");
-      const ghlData = await getGHLData();
+      // ---------------------------------------------------------------------
+      // Build organic rows
+      // ---------------------------------------------------------------------
 
-      setStatusMessage("Combining data...");
-      if (fullAdsets && ghlData) {
-        const combinedData = appendGHLData(ghlData, fullAdsets);
-        setData(combinedData);
-      } else {
-        setData(metaData);
-      }
+      setStatusMessage('Building adsets...');
+
+      const withOrganic = appendOrganicAdsets(
+        metaData,
+        startDate,
+        today
+      );
+
+      // ---------------------------------------------------------------------
+      // Fetch GHL
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Fetching GHL data...');
+
+      const ghlData = await fetchGHLData();
+
+      // ---------------------------------------------------------------------
+      // Merge weekly data
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Combining weekly data...');
+
+      const combined = mergeGHLData(
+        ghlData,
+        withOrganic
+      );
+
+      setData(combined);
+
+      // ---------------------------------------------------------------------
+      // Fetch aggregated Meta data
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Fetching aggregated Meta data...');
+
+      const metaAllData = await fetchMetaDataAll();
+
+      // ---------------------------------------------------------------------
+      // Merge aggregated data
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Combining aggregated data...');
+
+      const combinedAll = mergeGHLDataAll(
+        ghlData,
+        metaAllData
+      );
+
+      setAllData(combinedAll);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'An unknown error occurred'
+      );
     } finally {
       setLoading(false);
       setStatusMessage(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   return (
-    <MetaDataContext.Provider value={{ data, loading, error, statusMessage, refetch: getData }}>
+    <MetaDataContext.Provider
+      value={{
+        data,
+        allData,
+        loading,
+        error,
+        statusMessage,
+        refetch: getData,
+      }}
+    >
       {children}
     </MetaDataContext.Provider>
   );
@@ -149,6 +461,12 @@ export function MetaDataProvider({ children }: { children: ReactNode }) {
 
 export function useMetaData(): MetaDataContextType {
   const ctx = useContext(MetaDataContext);
-  if (!ctx) throw new Error("useMetaData must be used within a MetaDataProvider");
+
+  if (!ctx) {
+    throw new Error(
+      'useMetaData must be used within a MetaDataProvider'
+    );
+  }
+
   return ctx;
 }
