@@ -42,7 +42,7 @@ async function fetchFromMetaAPI(params: QueryParams): Promise<AdSetMetric[]> {
     const query = queryParams ? `?${new URLSearchParams(queryParams).toString()}` : ''
 
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 10_000)
+    const timeout = setTimeout(() => controller.abort(), 20_000)
 
     const response = await fetch(url + query, { signal: controller.signal })
     clearTimeout(timeout)

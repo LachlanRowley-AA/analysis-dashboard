@@ -5,9 +5,8 @@ import { getGHLDataFromCache, cacheGHLData } from '@/app/lib/cache/redisManager'
 
 const LOCATION_ID = process.env.LEADCONNECTOR_LOCATION_ID!;
 const TOKEN = process.env.LEADCONNECTOR_TOKEN!;
-
 const PIPELINE_ID = 'mdwRTZqohMS3j6UOPAe0';
-const PIPELINE_STAGE_ID = '3f6932c8-c391-4a13-ab7d-8efe4b29823e';
+const PAGE_LIMIT = 100;
 
 const CUSTOM_FIELD_IDS: Record<string, string> = {
   adset: '2j4KHgSJLwDR0N2CVjZG',
@@ -20,20 +19,18 @@ const CUSTOM_FIELD_IDS: Record<string, string> = {
  */
 async function getCachedData(): Promise<GHLData[] | null> {
   const cached = await getGHLDataFromCache();
-
   if (cached) {
     console.log('GHL cache hit');
     return cached;
   }
-
   console.log('GHL cache miss');
   return null;
 }
 
 /**
- * Fetch from LeadConnector API
+ * Fetch a single page from LeadConnector API
  */
-async function fetchFromGHLAPI(): Promise<any[]> {
+async function fetchPage(page: number): Promise<{ opportunities: any[]; total: number }> {
   const response = await fetch(
     'https://services.leadconnectorhq.com/opportunities/search',
     {
@@ -46,8 +43,8 @@ async function fetchFromGHLAPI(): Promise<any[]> {
       },
       body: JSON.stringify({
         locationId: LOCATION_ID,
-        limit: 500,
-        page: 0,
+        limit: PAGE_LIMIT,
+        page,
         query: '',
         additionalDetails: {
           notes: false,
@@ -61,31 +58,78 @@ async function fetchFromGHLAPI(): Promise<any[]> {
             operator: 'eq',
             value: PIPELINE_ID,
           },
-          {
-            group: "OR",
-            filters: [
-              {
-                field: 'pipeline_stage_id',
-                operator: 'eq',
-                value: PIPELINE_STAGE_ID,
-              },
-              {
-                field: "custom_fields.2j4KHgSJLwDR0N2CVjZG",
-                operator: "eq",
-                value: "Organic",
-              },
-            ]
-          }],
+        ],
       }),
     }
   );
 
   if (!response.ok) {
-    throw new Error(`LeadConnector error: ${response.status}`);
+    throw new Error(`LeadConnector error: ${response.status} (page ${page})`);
   }
 
   const json = await response.json();
-  return json.opportunities ?? [];
+  return {
+    opportunities: json.opportunities ?? [],
+    total: json.meta?.total ?? json.total ?? 0,
+  };
+}
+
+/**
+ * Fetch all pages from LeadConnector API
+ */
+async function fetchFromGHLAPI(): Promise<any[]> {
+  const all: any[] = [];
+
+  // Fetch first page to get total count
+  const first = await fetchPage(1);
+  all.push(...first.opportunities);
+
+  const totalPages = Math.ceil(first.total / PAGE_LIMIT);
+  console.log(`GHL: fetched page 1/${totalPages} (${first.total} total records)`);
+
+  if (totalPages > 1) {
+    // Fetch remaining pages concurrently
+    const remaining = Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2));
+    const results = await Promise.all(remaining);
+
+    for (const result of results) {
+      all.push(...result.opportunities);
+    }
+
+    console.log(`GHL: fetched all ${totalPages} pages (${all.length} records)`);
+  }
+
+  return all;
+}
+
+/**
+ * Map a raw GHL opportunity to a GHLData row
+ */
+function mapOpportunity(opp: any): GHLData {
+  const customLookup: Record<string, any> = {};
+
+  for (const f of opp.customFields ?? []) {
+    if (f.fieldValueString) {
+      customLookup[f.id] = f.fieldValueString;
+    }
+    if (f.fieldValueDate) {
+      const dt = DateTime
+        .fromMillis(Number(f.fieldValueDate), { zone: 'utc' })
+        .setZone('Australia/Sydney');
+      customLookup[f.id] = dt.toFormat('yyyy-MM-dd');
+    }
+  }
+
+  return {
+    name: opp.name,
+    value: opp.monetaryValue,
+    stageId: opp.pipelineStageId,
+    dateCreated: opp.createdAt,
+    owner: opp.assignedTo,
+    ad: customLookup[CUSTOM_FIELD_IDS.ad] ?? null,
+    adset: customLookup[CUSTOM_FIELD_IDS.adset] ?? null,
+    dateFunded: customLookup[CUSTOM_FIELD_IDS.dateFunded] ?? null,
+  };
 }
 
 /**
@@ -93,45 +137,15 @@ async function fetchFromGHLAPI(): Promise<any[]> {
  */
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-
     // 1. Try cache first
     const cached = await getCachedData();
     if (cached) {
       return NextResponse.json(cached);
     }
 
-    // 2. Fetch fresh data
+    // 2. Fetch all pages
     const opportunities = await fetchFromGHLAPI();
-
-    const rows: GHLData[] = opportunities.map((opp: any): GHLData => {
-      const customLookup: Record<string, any> = {};
-      for (const f of opp.customFields ?? []) {
-        if (f.fieldValueString) {
-          customLookup[f.id] = f.fieldValueString;
-        }
-
-        if (f.fieldValueDate) {
-          const dt = DateTime
-            .fromMillis(Number(f.fieldValueDate), { zone: 'utc' })
-            .setZone('Australia/Sydney');
-
-          customLookup[f.id] = dt.toFormat('yyyy-MM-dd');
-        }
-      }
-
-      return {
-        name: opp.name,
-        value: opp.monetaryValue,
-        stageId: opp.pipelineStageId,
-        dateCreated: opp.createdAt,
-        owner: opp.assignedTo,
-
-        ad: customLookup[CUSTOM_FIELD_IDS.ad] ?? null,
-        adset: customLookup[CUSTOM_FIELD_IDS.adset] ?? null,
-        dateFunded: customLookup[CUSTOM_FIELD_IDS.dateFunded] ?? null,
-      };
-    });
+    const rows: GHLData[] = opportunities.map(mapOpportunity);
 
     // 3. Cache result
     await cacheGHLData(rows);
@@ -139,7 +153,6 @@ export async function GET(req: Request) {
     return NextResponse.json(rows);
   } catch (error: any) {
     console.error('GHL API error:', error);
-
     return NextResponse.json(
       { error: error.message || 'An unknown error occurred' },
       { status: 500 }

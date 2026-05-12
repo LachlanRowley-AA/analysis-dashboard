@@ -18,6 +18,7 @@ import { createBlankMetaAdsetData } from '../lib/types';
 interface MetaDataContextType {
   data: AdSetMetric[] | null;
   allData: AdSetMetric[] | null;
+  ghlData: GHLData[] | null;
   loading: boolean;
   error: string | null;
   statusMessage: string | null;
@@ -94,8 +95,9 @@ async function fetchMetaDataAll(): Promise<AdSetMetric[]> {
   return hydrateAdSetMetrics(json);
 }
 
-async function fetchGHLData(): Promise<GHLData[]> {
-  const response = await fetch(`/api/GetGHLData`);
+async function fetchGHLData(stageId?: string): Promise<GHLData[]> {
+  const url = stageId ? `/api/GetGHLData?stageId=${stageId}` : `/api/GetGHLData`;
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`GHL API error: ${response.status}`);
@@ -347,6 +349,8 @@ export function MetaDataProvider({
 
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
+  const [ghlData, setGHLData] = useState<GHLData[] | null>(null);
+
   const todayRef = useRef<Date>(new Date());
 
   const startDateRef = useRef<Date>(
@@ -393,6 +397,8 @@ export function MetaDataProvider({
       setStatusMessage('Fetching GHL data...');
 
       const ghlData = await fetchGHLData();
+      setGHLData(ghlData);
+
 
       // ---------------------------------------------------------------------
       // Merge weekly data
@@ -451,6 +457,7 @@ export function MetaDataProvider({
         loading,
         error,
         statusMessage,
+        ghlData,
         refetch: getData,
       }}
     >

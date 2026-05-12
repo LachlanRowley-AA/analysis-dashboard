@@ -67,46 +67,50 @@ export async function cacheAdsetData(adsetData: AdSetMetric[]): Promise<void> {
     await redis.expire('metaAdsetData', secondsUntilMidnight);
 }
 
-export async function cacheGHLData(data: GHLData[]): Promise<void> {
-    const ttl = getSecondsUntilSydneyMidnight();
+const DEFAULT_CACHE_KEY = 'ghlData';
 
-    if (data.length === 0) {
-        await redis.del('ghlData');
-        await redis.expire('ghlData', ttl);
-        return;
-    }
-
-    // Batch ZADD args
-    const args: (string | number)[] = [];
-
-    for (const item of data) {
-        args.push(
-            convertToUnix(new Date(item.dateCreated)),
-            JSON.stringify(item)
-        );
-    }
-
-    // Replace entire dataset in one atomic operation
-    await redis.del('ghlData');
-    await redis.zadd('ghlData', ...args);
-
-    // Set TTL on key itself (no separate expiry key needed)
-    await redis.expire('ghlData', ttl);
+function getCacheKey(stageId?: string): string {
+  return stageId ? `ghlData:${stageId}` : DEFAULT_CACHE_KEY;
 }
-export async function getGHLDataFromCache(): Promise<GHLData[] | null> {
-    const exists = await redis.exists('ghlData');
 
-    if (!exists) {
-        console.log('GHL Cache missing or expired');
-        return null;
-    }
-    const data = await redis.zrange('ghlData', 0, -1);
+export async function cacheGHLData(data: GHLData[], stageId?: string): Promise<void> {
+  const key = getCacheKey(stageId);
+  const ttl = getSecondsUntilSydneyMidnight();
 
-    if (data.length === 0) {
-        return [];
-    }
+  if (data.length === 0) {
+    await redis.del(key);
+    await redis.expire(key, ttl);
+    return;
+  }
 
-    return data.map(item => JSON.parse(item) as GHLData);
+  const args: (string | number)[] = [];
+  for (const item of data) {
+    args.push(
+      convertToUnix(new Date(item.dateCreated)),
+      JSON.stringify(item)
+    );
+  }
+
+  await redis.del(key);
+  await redis.zadd(key, ...args);
+  await redis.expire(key, ttl);
+}
+
+export async function getGHLDataFromCache(stageId?: string): Promise<GHLData[] | null> {
+  const key = getCacheKey(stageId);
+  const exists = await redis.exists(key);
+
+  if (!exists) {
+    console.log(`GHL Cache missing or expired [key: ${key}]`);
+    return null;
+  }
+
+  const data = await redis.zrange(key, 0, -1);
+  if (data.length === 0) {
+    return [];
+  }
+
+  return data.map(item => JSON.parse(item) as GHLData);
 }
 
 export async function clearCache(): Promise<void> {

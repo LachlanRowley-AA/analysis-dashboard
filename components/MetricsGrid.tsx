@@ -1,4 +1,4 @@
-import { useState, useMemo, Fragment } from 'react';
+import { useState, useMemo, Fragment, ReactNode } from 'react';
 import { Grid, Switch, Group, Text, useMatches } from '@mantine/core';
 import { StatCard } from './StatCard';
 import { RunRateChart } from './RunRateChart';
@@ -23,12 +23,28 @@ type MetricKey = {
   | 'landingPageView' | 'impressions' | 'ctr'
   | 'conversions' | 'conversionValue' | 'cpm'
 );
+
+/** A fully custom card slot to inject into the grid. */
+export interface ExtraCard {
+  /** Must be unique across all cards. */
+  key: string;
+  /** The <StatCard /> (or any node) to render. */
+  node: ReactNode;
+  /**
+   * If provided the card participates in the expand-chart interaction,
+   * just like the built-in cards that have a `metric`.
+   */
+  metric?: MetricKey;
+}
+
 interface MetricsGridProps {
   data: AdSetMetric;
   comparison?: AdSetMetric;
   showComparison?: boolean;
   dataArr?: AdSetMetric[];
   comparisonArr?: AdSetMetric[];
+  /** Extra <StatCard> slots appended after the built-in cards. */
+  extraCards?: ExtraCard[];
 }
 
 // ─── Helpers ───────────────
@@ -77,6 +93,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
   showComparison = false,
   dataArr = [],
   comparisonArr = [],
+  extraCards = [],
 }) => {
   const [showAbsolute, setShowAbsolute] = useState(false);
   const [activeMetric, setActiveMetric] = useState<MetricKey | null>(null);
@@ -90,7 +107,6 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
     () => dataArr.at(-1)?.date.getDate() ?? 0,
     [dataArr],
   );
-  const prevDay = Math.max(0, lastDay - 1);
 
   // All same-day comparisons in one memo
   const sameDayChanges = useMemo(() => {
@@ -126,9 +142,8 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
     setActiveRow(isActive ? -1 : rowIndex);
   }
 
-  // Card definitions as data — keeps JSX section thin
-  // `rowIndex` is injected during render below
-  const cardDefs = [
+  // ── Built-in card definitions ──────────────────────────────────────────────
+  const builtInCardDefs = [
     { key: 'cpl',             icon: <IconMessage size={28} />,        title: 'Cost Per Lead',         value: cpl  != null ? `$${numberFormatter.format(cpl)}`  : 'No leads',        change: cpl  != null ? change(cpl,  compCpl,  'currency') : undefined, prior: compCpl  != null ? `$${numberFormatter.format(compCpl)}`  : undefined, lowerBetter: true,  format: 'currency' as const },
     { key: 'leads',           icon: <IconUserPlus size={28} />,       title: 'Total Leads',           value: data.lead.toLocaleString(),                                              change: change(data.lead, comparison?.lead),                                prior: comparison?.lead.toLocaleString(),                                     format: 'number'   as const, metric: 'lead'            as MetricKey, sameDayChange: sameDayChanges.lead },
     { key: 'cpa',             icon: <IconTrendingUp size={28} />,     title: 'Cost Per Acquisition',  value: cpa  != null ? `$${numberFormatter.format(cpa)}`  : 'No conversions',   change: cpa  != null ? change(cpa,  compCpa,  'currency') : undefined, prior: compCpa  != null ? `$${numberFormatter.format(compCpa)}`  : comparison ? 'No conversions' : undefined, lowerBetter: true,  format: 'currency' as const },
@@ -141,6 +156,20 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
     { key: 'roas',            icon: <IconUsers size={28} />,          title: 'Return on Ad Spend',    value: roas.toFixed(2),                                                         change: change(roas, compRoas),                                              prior: compRoas?.toLocaleString(),                                            format: 'number'   as const },
     { key: 'conversions',     icon: <IconUsers size={28} />,          title: 'Num Conversions',       value: data.conversions.toString(),                                             change: change(data.conversions, comparison?.conversions),                    prior: comparison?.conversions.toString(),                                    format: 'number'   as const, metric: 'conversions'     as MetricKey, sameDayChange: sameDayChanges.conversions },
   ];
+
+  // ── Unified render list ────────────────────────────────────────────────────
+  // Normalise both built-in and extra cards to the same shape so the loop
+  // below stays simple and the row-expansion logic works for all of them.
+  type RenderItem =
+    | { kind: 'builtin'; index: number; def: typeof builtInCardDefs[number] }
+    | { kind: 'extra';   index: number; def: ExtraCard };
+
+  const renderItems: RenderItem[] = [
+    ...builtInCardDefs.map((def, i) => ({ kind: 'builtin' as const, index: i,                          def })),
+    ...extraCards      .map((def, i) => ({ kind: 'extra'   as const, index: builtInCardDefs.length + i, def })),
+  ];
+
+  const totalCards = renderItems.length;
 
   return (
     <>
@@ -159,24 +188,36 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
       )}
 
       <Grid>
-        {cardDefs.map(({ key, metric, sameDayChange, prior, ...cardProps }, index) => {
+        {renderItems.map((item) => {
+          const { index } = item;
           const rowIndex  = Math.floor(index / cardsPerRow);
-          const isRowEnd  = (index + 1) % cardsPerRow === 0 || index === cardDefs.length - 1;
-          const isActive  = activeMetric === metric;
+          const isRowEnd  = (index + 1) % cardsPerRow === 0 || index === totalCards - 1;
+          const metric    = item.def.metric as MetricKey | undefined;
+          const isActive  = !!metric && activeMetric === metric;
 
           return (
-            <Fragment key={key}>
+            <Fragment key={item.def.key}>
               <Grid.Col
                 span={colSpan}
-                onClick={() => metric ? toggleMetric(metric, rowIndex) : setActiveRow(rowIndex)}
+                onClick={() => metric ? toggleMetric(metric, rowIndex) : undefined}
               >
-                <StatCard
-                  {...cardProps}
-                  color="#20c997"
-                  priorValue={prior}
-                  active={isActive}
-                  sameDayChange={sameDayChange}
-                />
+                {item.kind === 'extra' ? (
+                  // Render the pre-built node as-is
+                  item.def.node
+                ) : (
+                  (() => {
+                    const { key: _key, metric: _metric, sameDayChange, prior, ...cardProps } = item.def;
+                    return (
+                      <StatCard
+                        {...cardProps}
+                        color="#20c997"
+                        priorValue={prior}
+                        active={isActive}
+                        sameDayChange={sameDayChange}
+                      />
+                    );
+                  })()
+                )}
               </Grid.Col>
 
               {isRowEnd && activeRow === rowIndex && activeMetric && (
