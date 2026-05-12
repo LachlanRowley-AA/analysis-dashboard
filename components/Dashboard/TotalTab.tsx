@@ -3,10 +3,31 @@ import { MetricsGrid } from '../MetricsGrid';
 import { useState } from 'react';
 import { useMetaData } from '@/app/context/MetaContextProvider';
 import { mergeAdsetData } from '@/utils/calculateUtils';
+import { StatCard } from '../StatCard';
+import QualityCard from '../QualityCard';
+import { GHLData } from '@/app/lib/types';
+import { numberFormatter } from '@/utils/formatter';
+
+
+function getAverage(data: GHLData[]): number {
+  const totalPerCustomer = data.reduce<Record<string, number>>((customer, { name, value}) => {
+    if(value > 0) {
+      customer[name] = (customer[name] ?? 0) + value      
+    }
+    return customer;
+  }, {});
+  console.log("totals are: ", totalPerCustomer);
+
+  const totals = Object.values(totalPerCustomer)
+    console.log('Length is ', totals.length)
+  return (totals.reduce((sum, v) => sum + v, 0) / totals.length);
+}
 
 export const TotalTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  const { allData } = useMetaData();
+  const { allData, ghlData } = useMetaData();
+
+  console.log('GHL Data in TotalTab:', ghlData);
 
   if (!allData) return <p>No data available</p>;
 
@@ -29,11 +50,16 @@ export const TotalTab = () => {
     'Total'
   );
 
+  const avgAmount = getAverage(ghlData?.filter(item => item.adset !== 'Organic') ?? []);
+
   return (
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md" c="white">
           Total
+        </Title>
+        <Title order={4} mb="md" c="white">
+          Excluding Organic
         </Title>
 
         <Select
@@ -56,6 +82,20 @@ export const TotalTab = () => {
         <MetricsGrid
           data={merged}
           dataArr={filter}
+          extraCards={[
+            {
+              key: 'quality',
+              node: (<QualityCard/>)
+            },
+            {
+              key: 'average',
+              node: (<StatCard
+                value={`$${numberFormatter.format(avgAmount)}`}
+                icon=''
+                title='Average Revenue per Customer'
+                color=''/>)
+            }
+          ]}
         />
       </div>
     </Stack>
