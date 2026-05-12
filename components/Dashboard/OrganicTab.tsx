@@ -15,7 +15,6 @@ export const OrganicTab = () => {
     const previousMonthMerge = mergeAdsetData(previousMonthData, 'Previous Month Organic');
     const currentMonthMerge = mergeAdsetData(currentMonthData, 'Current Month Organic');
 
-    // console.log('organic data = ', workingData)
     return (
         <Stack gap="xl">
             <div>

@@ -11,7 +11,6 @@ export const PriorOrganicTab = () => {
     const currentMonth = new Date().getMonth() === 0 ? 10 : new Date().getMonth() - 1;
     const previousMonthData = workingData.filter(item => item.date.getMonth() === previousMonth);
     const currentMonthData = workingData.filter(item => item.date.getMonth() === currentMonth);
-    const merge = mergeAdsetData(workingData, 'Organic');
     const previousMonthMerge = mergeAdsetData(previousMonthData, 'Previous Month Organic');
     const currentMonthMerge = mergeAdsetData(currentMonthData, 'Current Month Organic');
 

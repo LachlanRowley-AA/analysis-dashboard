@@ -185,6 +185,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({
                     analytics={dataArr}
                     comparisonData={comparisonArr}
                     metric={activeMetric}
+                    increment={7}
                   />
                 </Grid.Col>
               )}

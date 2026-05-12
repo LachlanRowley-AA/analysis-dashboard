@@ -20,7 +20,6 @@ export const PriorMonthComparisonTab = () => {
     ? data.filter(item => item.adsetName === selectedAdset)
     : data;
 
-  console.log(filter);
   const previousMonthData = filter.filter(item => (item.date.getMonth()) === previousMonth);
   const currentMonthData = filter.filter(item => (item.date.getMonth()) === month);
 
