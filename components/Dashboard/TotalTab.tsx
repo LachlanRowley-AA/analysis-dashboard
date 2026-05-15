@@ -7,6 +7,8 @@ import { StatCard } from '../StatCard';
 import QualityCard from '../QualityCard';
 import { GHLData } from '@/app/lib/types';
 import { numberFormatter } from '@/utils/formatter';
+// import { LTVCost } from '../LTVCtAC';
+import { LTVGrid } from '../LTV';
 
 
 function getAverage(data: GHLData[]): number {
@@ -94,6 +96,10 @@ export const TotalTab = () => {
                 icon=''
                 title='Average Revenue per Customer'
                 color=''/>)
+            },
+            {
+              key: 'ltv',
+              node: (<LTVGrid data={filter}/>)  
             }
           ]}
         />

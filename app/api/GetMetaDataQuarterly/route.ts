@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { AdSetMetric } from "@/app/lib/types";
-import { getAdsetDataFromCache, cacheAdsetData } from "@/app/lib/cache/redisManager";
+import { getQuarterlyAdsetDataFromCache, cacheQuarterlyAdsetData } from "@/app/lib/cache/redisManager";
 
 const ACCESS_TOKEN = process.env.META_ACCESS_TOKEN!
 const AD_ACCOUNT_ID = `act_${process.env.META_AD_ACCOUNT_ID}`
@@ -22,7 +22,7 @@ interface QueryParams {
 }
 
 async function checkCache(): Promise<AdSetMetric[] | null> {
-  const cached = await getAdsetDataFromCache()
+  const cached = await getQuarterlyAdsetDataFromCache()
 
   if (cached) {
     console.log('Cache hit')
@@ -110,8 +110,8 @@ export async function GET(req: Request) {
 
     const endDate = endDateParam ? new Date(endDateParam) : new Date()
 
-    const cached = await checkCache()
-    if (cached) return Response.json(cached)
+    const cached = await getQuarterlyAdsetDataFromCache();
+    if (cached) return Response.json(cached);
 
     // //This quarter
     const quarterStartDate = new Date(endDate.getFullYear(), endDate.getMonth() - 2, 1)
@@ -133,7 +133,7 @@ export async function GET(req: Request) {
     const lastData = await fetchFromMetaAPI(last_params)
 
     data.push(...lastData)
-    await cacheAdsetData(data)
+    await cacheQuarterlyAdsetData(data)
 
     return Response.json(data)
   } catch (err: any) {
