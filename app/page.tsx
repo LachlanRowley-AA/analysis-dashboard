@@ -67,7 +67,7 @@ export default function Dashboard() {
         <Tabs.List mb="xl" c='#01E194'>
           <Tabs.Tab value="monthComparison">This Month vs Last</Tabs.Tab>
           <Tabs.Tab value="quarterComparison">This Quarter vs Last</Tabs.Tab>
-          {/* <Tabs.Tab value="priorMonthComparison">Last Quarter vs Prior</Tabs.Tab> */}
+          <Tabs.Tab value="priorMonthComparison">Last Quarter vs Prior</Tabs.Tab>
           {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab> */}
           <Tabs.Tab value="total">Total</Tabs.Tab>
           <Tabs.Tab value="organic">Organic</Tabs.Tab>
