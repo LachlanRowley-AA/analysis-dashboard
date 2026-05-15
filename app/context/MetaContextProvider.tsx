@@ -18,6 +18,7 @@ import { createBlankMetaAdsetData } from '../lib/types';
 interface MetaDataContextType {
   data: AdSetMetric[] | null;
   allData: AdSetMetric[] | null;
+  monthlyData: AdSetMetric[] | null;
   ghlData: GHLData[] | null;
   loading: boolean;
   error: string | null;
@@ -76,6 +77,26 @@ async function fetchMetaData(
 
   if (!response.ok) {
     throw new Error(`Meta API error: ${response.status}`);
+  }
+
+  const json: AdSetMetric[] = await response.json();
+
+  return hydrateAdSetMetrics(json);
+}
+
+async function fetchMetaDataMonthly(
+  endDate: Date
+): Promise<AdSetMetric[]> {
+  const startDate = new Date(endDate.getFullYear(), endDate.getMonth() > 0 ? endDate.getMonth() - 1 : 12, 1)
+  const url =
+    `/api/GetMetaData` +
+    `?startDateParam=${toDateString(startDate)}` +
+    `&endDateParam=${toDateString(endDate)}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Meta Monthly API error: ${response.status}`);
   }
 
   const json: AdSetMetric[] = await response.json();
@@ -276,6 +297,88 @@ function mergeGHLData(
 }
 
 /**
+ * Merge GHL lead/conversion data into day-by-day monthly Meta adset data.
+ * Uses exact date matching only — no weekly bucket snapping.
+ */
+function mergeGHLDataMonthly(
+  ghlData: GHLData[],
+  adsets: AdSetMetric[]
+): AdSetMetric[] {
+  // "adsetName|dateString" -> index in adsets[]
+  const indexMap = new Map<string, number>();
+
+  adsets.forEach((entry, i) => {
+    indexMap.set(`${entry.adsetName}|${toDateString(entry.date)}`, i);
+  });
+
+  // -------------------------------------------------------------------------
+  // Helpers — exact match only, no bucket snapping
+  // -------------------------------------------------------------------------
+
+  function resolveEntry(
+    adsetName: string,
+    dateStr: string
+  ): AdSetMetric | null {
+    const idx = indexMap.get(`${adsetName}|${dateStr}`);
+    return idx !== undefined ? adsets[idx] : null;
+  }
+
+  function createFallbackEntry(
+    adsetName: string,
+    dateStr: string
+  ): AdSetMetric {
+    const newEntry = createBlankMetaAdsetData(adsetName, new Date(dateStr));
+    const newIdx = adsets.length;
+    adsets.push(newEntry);
+    indexMap.set(`${adsetName}|${dateStr}`, newIdx);
+    return newEntry;
+  }
+
+  // -------------------------------------------------------------------------
+  // Main merge loop
+  // -------------------------------------------------------------------------
+
+  for (const ghlEntry of ghlData) {
+    const isOrganic = ghlEntry.adset === 'Organic';
+    const mappedAdsetName = GHL_TO_ATO_MAPPING[ghlEntry.adset];
+    const adsetName = mappedAdsetName ?? ghlEntry.adset;
+
+    // Funded conversion — keyed to the funded date
+    if (!isOrganic && ghlEntry.dateFunded) {
+      const dateStr = toDateString(ghlEntry.dateFunded);
+      const entry =
+        resolveEntry(adsetName, dateStr) ??
+        createFallbackEntry(adsetName, dateStr);
+      entry.conversions += 1;
+      entry.conversionValue += ghlEntry.value;
+    }
+
+    // Organic lead — keyed to the created date; funded conversion on funded date
+    if (isOrganic && ghlEntry.dateCreated) {
+      const dateStr = toDateString(ghlEntry.dateCreated);
+      const fundedDateStr = ghlEntry.dateFunded
+        ? toDateString(ghlEntry.dateFunded)
+        : undefined;
+
+      const entry =
+        resolveEntry(adsetName, dateStr) ??
+        createFallbackEntry(adsetName, dateStr);
+      entry.lead += 1;
+
+      if (fundedDateStr) {
+        const fundedEntry =
+          resolveEntry(adsetName, fundedDateStr) ??
+          createFallbackEntry(adsetName, fundedDateStr);
+        fundedEntry.conversions += 1;
+        fundedEntry.conversionValue += ghlEntry.value;
+      }
+    }
+  }
+
+  return adsets;
+}
+
+/**
  * Merge GHL data into aggregated adset rows returned by /GetMetaDataAll
  *
  * Since there is only ONE entry per adset, we simply accumulate all
@@ -342,6 +445,7 @@ export function MetaDataProvider({
 }) {
   const [data, setData] = useState<AdSetMetric[] | null>(null);
   const [allData, setAllData] = useState<AdSetMetric[] | null>(null);
+  const [monthlyData, setMonthlyData] = useState<AdSetMetric[] | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -433,6 +537,36 @@ export function MetaDataProvider({
       );
 
       setAllData(combinedAll);
+
+      // ---------------------------------------------------------------------
+      // Fetch day-by-day monthly Meta data
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Fetching monthly Meta data...');
+
+      const metaMonthlyData = await fetchMetaDataMonthly(today);
+
+      // ---------------------------------------------------------------------
+      // Build organic rows for monthly data
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Building monthly adsets...');
+
+      const monthlyWithOrganic = appendOrganicAdsets(
+        metaMonthlyData,
+        startDate,
+        today
+      );
+
+      // ---------------------------------------------------------------------
+      // Merge monthly data (exact date match, no bucket snapping)
+      // ---------------------------------------------------------------------
+
+      setStatusMessage('Combining monthly data...');
+
+      const combinedMonthly = mergeGHLDataMonthly(ghlData, monthlyWithOrganic);
+
+      setMonthlyData(combinedMonthly);
     } catch (err) {
       setError(
         err instanceof Error
@@ -454,6 +588,7 @@ export function MetaDataProvider({
       value={{
         data,
         allData,
+        monthlyData,
         loading,
         error,
         statusMessage,

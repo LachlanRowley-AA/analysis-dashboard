@@ -10,7 +10,7 @@
 // interface LTVCostProps {
 //   data: MetaAdsetData[];
 //   comparison?: MetaAdsetData[];
-//   showComparison?: boolean;
+//   showComparaison?: boolean;
 //   currentCost: number;
 //   priorCost?: number;
 // }

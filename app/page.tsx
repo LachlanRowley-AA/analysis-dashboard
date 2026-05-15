@@ -10,6 +10,7 @@ import { PriorOrganicTab } from "@/components/Dashboard/PriorOrganicTab";
 import { TotalTab } from "@/components/Dashboard/TotalTab";
 import { clearAllCache } from "./lib/cache/redisActions";
 import { TotalOrganicTab } from "@/components/Dashboard/TotalOrganicTab";
+import { QuarterComparisonTab } from "@/components/Dashboard/QuarterComparisonTab";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<string | null>('monthComparison');
@@ -39,7 +40,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container fluid py="xl" px='xl' mx="5%">
       <Group justify="space-between" mb="xl">
         <Title order={1} c='white'>Analytics Dashboard</Title>
         <Stack>
@@ -64,15 +65,13 @@ export default function Dashboard() {
 
       <Tabs value={activeTab} onChange={setActiveTab} c='#cf0072'>
         <Tabs.List mb="xl" c='#01E194'>
-          <Tabs.Tab value="monthComparison">This Quarter vs Last</Tabs.Tab>
-          {/* <Tabs.Tab value="priorMonthComparison">Last Quarter vs Prior</Tabs.Tab> */}
+          <Tabs.Tab value="monthComparison">This Month vs Last</Tabs.Tab>
+          <Tabs.Tab value="quarterComparison">This Quarter vs Last</Tabs.Tab>
+          <Tabs.Tab value="priorMonthComparison">Last Quarter vs Prior</Tabs.Tab>
           {/* <Tabs.Tab value="categoryComparison">ATO vs Machinery</Tabs.Tab> */}
           <Tabs.Tab value="total">Total</Tabs.Tab>
           <Tabs.Tab value="organic">Organic</Tabs.Tab>
-          {/* <Tabs.Tab value="priorOrganic">Prior Organic</Tabs.Tab> */}
           <Tabs.Tab value="totalOrganic">Total Organic</Tabs.Tab>
-          {/* <Tabs.Tab value="ghl">GHL Data</Tabs.Tab>
-          <Tabs.Tab value="projection">Project</Tabs.Tab> */}
         </Tabs.List>
 
         <Tabs.Panel value="monthComparison">
@@ -80,6 +79,9 @@ export default function Dashboard() {
             <MonthComparisonTab
             />
           )}
+        </Tabs.Panel>
+        <Tabs.Panel value="quarterComparison">
+          {<QuarterComparisonTab/>}
         </Tabs.Panel>
         <Tabs.Panel value="priorMonthComparison">
           {<PriorMonthComparisonTab />}

@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { useMetaData } from '@/app/context/MetaContextProvider';
 import { mergeAdsetData } from '@/utils/calculateUtils';
 
-export const MonthComparisonTab = () => {
+export const QuarterComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  const { monthlyData: rawData } = useMetaData();
+  const { data: rawData } = useMetaData();
 
   const now = new Date();
   const currentMonth = now.getMonth();
-  const priorMonth = currentMonth == 1 ? 12 : currentMonth - 1 //Handle January wrap
 
   if (!rawData) return <p>No data available</p>;
 
@@ -28,13 +27,30 @@ export const MonthComparisonTab = () => {
       ? data.filter(item => item.adsetName === selectedAdset)
       : data;
 
+  /**
+   * Rolling quarter logic
+   *
+   * Example:
+   * Jan => Nov, Dec, Jan
+   * Feb => Dec, Jan, Feb
+   * Mar => Jan, Feb, Mar
+   */
+  const currentQuarterMonths = [
+    (currentMonth - 2 + 12) % 12,
+    (currentMonth - 1 + 12) % 12,
+    currentMonth,
+  ];
+
+  const previousQuarterMonths = currentQuarterMonths.map(
+    m => (m - 3 + 12) % 12
+  );
 
   const currentQuarterData = filter.filter(item =>
-    item.date.getMonth() == currentMonth
+    currentQuarterMonths.includes(item.date.getMonth())
   );
 
   const previousQuarterData = filter.filter(item =>
-    item.date.getMonth() == priorMonth
+    previousQuarterMonths.includes(item.date.getMonth())
   );
 
   const currentQuarterMerged = mergeAdsetData(
@@ -51,7 +67,7 @@ export const MonthComparisonTab = () => {
     <Stack gap="xl">
       <div>
         <Title order={2} mb="md" c="white">
-          This Month vs Last
+          Rolling Quarter
         </Title>
 
         <Select
