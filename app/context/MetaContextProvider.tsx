@@ -85,9 +85,9 @@ async function fetchMetaData(
 }
 
 async function fetchMetaDataMonthly(
-  startDate: Date,
   endDate: Date
 ): Promise<AdSetMetric[]> {
+  const startDate = new Date(endDate.getFullYear(), endDate.getMonth() > 0 ? endDate.getMonth() - 1 : 12, 1)
   const url =
     `/api/GetMetaData` +
     `?startDateParam=${toDateString(startDate)}` +
@@ -544,7 +544,7 @@ export function MetaDataProvider({
 
       setStatusMessage('Fetching monthly Meta data...');
 
-      const metaMonthlyData = await fetchMetaDataMonthly(startDate, today);
+      const metaMonthlyData = await fetchMetaDataMonthly(today);
 
       // ---------------------------------------------------------------------
       // Build organic rows for monthly data

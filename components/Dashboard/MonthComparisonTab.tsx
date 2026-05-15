@@ -6,7 +6,7 @@ import { mergeAdsetData } from '@/utils/calculateUtils';
 
 export const MonthComparisonTab = () => {
   const [selectedAdset, setSelectedAdset] = useState<string | null>('All');
-  const { data: rawData } = useMetaData();
+  const { monthlyData: rawData } = useMetaData();
 
   const now = new Date();
   const currentMonth = now.getMonth();

@@ -11,15 +11,15 @@ interface GraphDataPoint {
 type MetricKey = {
     [K in keyof AdSetMetric]: AdSetMetric[K] extends number ? K : never;
 }[keyof AdSetMetric] & (
-    | 'lead' | 'amountSpent' | 'reach' | 'linkClicks'
-    | 'landingPageView' | 'impressions' | 'ctr'
-    | 'conversions' | 'conversionValue' | 'cpm'
-);
+        | 'lead' | 'amountSpent' | 'reach' | 'linkClicks'
+        | 'landingPageView' | 'impressions' | 'ctr'
+        | 'conversions' | 'conversionValue' | 'cpm'
+    );
 
 /* ------------------- Helpers ------------------- */
 
 function bucketLabel(startDay: number, increment: number): string {
-    if (increment === 1) return `Day ${startDay}`;
+    if (increment === 1) return `${startDay}`;
     const end = startDay + increment - 1;
     return `Day ${startDay}–${end}`;
 }
@@ -101,31 +101,42 @@ export function RunRateChart({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // How many days into the current period are we?
+    const distinctDates = [...new Set(
+        sorted.map(d => d.date.toDateString())
+    )];
+
+    const detectedIncrement = distinctDates.length >= 2
+        ? Math.round(
+            (new Date(distinctDates[1]).getTime() - new Date(distinctDates[0]).getTime()) / 86_400_000
+        )
+        : increment;
+
+    const effectiveIncrement = detectedIncrement > 0 ? detectedIncrement : increment;
+
+    
     const currentRelativeDay =
         Math.floor((today.getTime() - anchorBase.getTime()) / 86_400_000) + 1;
 
-    // How many days does the comparison period span?
     const comparisonRelativeDay = comparisonData?.length
         ? (() => {
-              const cs = [...comparisonData].sort((a, b) => a.date.getTime() - b.date.getTime());
-              const compAnchor = new Date(cs[0].date);
-              compAnchor.setHours(0, 0, 0, 0);
-              const compEnd = new Date(cs[cs.length - 1].date);
-              compEnd.setHours(0, 0, 0, 0);
-              return Math.floor((compEnd.getTime() - compAnchor.getTime()) / 86_400_000) + 1;
-          })()
+            const cs = [...comparisonData].sort((a, b) => a.date.getTime() - b.date.getTime());
+            const compAnchor = new Date(cs[0].date);
+            compAnchor.setHours(0, 0, 0, 0);
+            const compEnd = new Date(cs[cs.length - 1].date);
+            compEnd.setHours(0, 0, 0, 0);
+            return Math.floor((compEnd.getTime() - compAnchor.getTime()) / 86_400_000) + 1;
+        })()
         : 0;
 
     const baseMap = getIncrementCumulativeData(
         analytics,
         metric,
         currentRelativeDay,
-        increment,
+        effectiveIncrement,
     );
 
     const comparisonMap = comparisonData?.length
-        ? getIncrementCumulativeData(comparisonData, metric, comparisonRelativeDay, increment)
+        ? getIncrementCumulativeData(comparisonData, metric, comparisonRelativeDay, effectiveIncrement)
         : new Map<number, number>();
 
     const allBucketStarts = Array.from(
@@ -155,7 +166,7 @@ export function RunRateChart({
             connectNulls={false}
             withPointLabels={false}
             xAxisProps={{
-                tickFormatter: (v: number) => bucketLabel(v, increment),
+                tickFormatter: (v: number) => bucketLabel(v, effectiveIncrement),
             }}
         />
     );

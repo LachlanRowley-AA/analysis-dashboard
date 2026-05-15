@@ -40,7 +40,7 @@ export default function Dashboard() {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container fluid py="xl" px='xl' mx="5%">
       <Group justify="space-between" mb="xl">
         <Title order={1} c='white'>Analytics Dashboard</Title>
         <Stack>
